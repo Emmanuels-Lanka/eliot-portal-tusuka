@@ -9,7 +9,7 @@ const page = () => {
       title: "Operation Efficiency Heatmaps",
       description:
         "This component visualizes horly efficiency for each operation  ",
-      url: "https://portal.eliot.global/efficiency-live",
+      url: "https://tiswlunit2.eliot.global/efficiency-live",
       imageUrl: "/tv/efficiency.png",
     },
     {
@@ -17,7 +17,7 @@ const page = () => {
       title: "Operator Efficiency Heatmap",
       description:
         "This Chart visualizes  efficiency for each operator ",
-      url: "https://portal.eliot.global/oe60",
+      url: "https://tiswlunit2.eliot.global/oe60",
       imageUrl: "/tv/operator.png",
     },
     {
@@ -25,7 +25,7 @@ const page = () => {
       title: "Production Heatmap",
       description:
         "This Heatmap shows hourly production of each operation.",
-      url: "https://portal.eliot.global/prod60",
+      url: "https://tiswlunit2.eliot.global/prod60",
       imageUrl: "/tv/prod.png",
     },
     {
@@ -33,7 +33,7 @@ const page = () => {
       title: "SMV vs Cycle Time",
       description:
         "This Graph shows the difference between the SMV and the Actual Cycle Time.",
-      url: "https://portal.eliot.global/SvC",
+      url: "https://tiswlunit2.eliot.global/SvC",
       imageUrl: "/tv/svc.png",
     },
     {
@@ -41,7 +41,7 @@ const page = () => {
       title: "Overall Operation Efficiency",
       description:
         "Shows, for each operation, how much of their production target they have achieved so far in the day.",
-      url: "https://portal.eliot.global/ovef",
+      url: "https://tiswlunit2.eliot.global/ovef",
       imageUrl: "/tv/overall.png",
     },
     
@@ -50,7 +50,7 @@ const page = () => {
       title: "Hourly Production (Operator)",
       description:
         "This Heatmap shows hourly production of each operator.",
-      url: "https://portal.eliot.global/operator-prod",
+      url: "https://tiswlunit2.eliot.global/operator-prod",
       imageUrl: "/tv/HourlyProd.png",
     },
     
