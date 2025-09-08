@@ -73,11 +73,8 @@ export const columns: ColumnDef<SewingMachine | any>[] = [
         accessorKey: "serialNumber",
         header: "Serial No.",
     },
-    // {
-    //     id: 'eliotDevice.serialNumber',
-    //     header: 'Serial Number',
-       
-    //   },
+   
+   
     {
         accessorKey: "brandName",
         header: ({ column }) => {
@@ -129,23 +126,26 @@ export const columns: ColumnDef<SewingMachine | any>[] = [
             )
         },
     },
+     {
+  id: "eliotDeviceSerialNumber", // Use a custom id, not nested path
+  header: "ElIoT Serial Number",
+  accessorFn: row => row.eliotDevice?.serialNumber ?? "Unassigned", // Safe access with fallback
+},
     {
-        id: 'eliotDevice.serialNumber',
-    
-        accessorKey: "eliotDevice.serialNumber",
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    className="-ml-3"
-                >
-                    ELIoT Device
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            )
-        }
-    },
+  id: 'lineNames',
+  accessorFn: (row) => row.productionLines?.map((line:any) => line.name).join(', ') || 'N/A',
+  header: ({ column }) => (
+    <Button
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      className="-ml-3"
+    >
+      Line
+      <ArrowUpDown className="ml-2 h-4 w-4" />
+    </Button>
+  )
+}
+,
     {
         accessorKey: "isAssigned",
         header: ({ column }) => {
@@ -179,3 +179,4 @@ export const columns: ColumnDef<SewingMachine | any>[] = [
         cell: ({ row }) => <ActionCell row={row} />
     }
 ]
+    
