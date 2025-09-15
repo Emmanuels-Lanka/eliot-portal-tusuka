@@ -38,11 +38,21 @@ const CreateNewSewingMachine = async () => {
     },
   });
 
+  const machineBrands = await db.machineBrands.findMany({
+    select:{
+      brandName:true
+    },
+    orderBy:{
+      brandName:"asc"
+    }
+  })
+
   return (
     <>
       <AddSewingMachineForm
         devices={devices}
         units={units}
+        machineBrands={machineBrands}
         machineTypes={machineTypes}
         mode="create"
       />

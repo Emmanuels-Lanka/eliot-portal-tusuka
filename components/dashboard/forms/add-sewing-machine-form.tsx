@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 import { MACHINE_BRANDS } from "@/constants";
 import { AddMachineTypeDialog } from "@/app/(dashboard)/sewing-machines/_components/add-machine-type-dialog";
 import { Separator } from "@/components/ui/separator";
+import { AddMachineBrandDialog } from "@/app/(dashboard)/sewing-machines/_components/add-brand-name-dialog";
 
 interface AddSewingMachineFormProps {
   devices: {
@@ -62,6 +63,9 @@ interface AddSewingMachineFormProps {
   initialData?: any | null;
   machineId?: string;
   mode?: string;
+  machineBrands:{
+    brandName:string
+  }[]
 }
 
 const formSchema = z.object({
@@ -94,6 +98,7 @@ const AddSewingMachineForm = ({
   initialData,
   machineId,
   mode,
+  machineBrands
 }: AddSewingMachineFormProps) => {
   const { toast } = useToast();
   const router = useRouter();
@@ -209,8 +214,8 @@ const AddSewingMachineForm = ({
               control={form.control}
               name="unitId"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-base">Production Unit</FormLabel>
+                <FormItem className="my-4 ">
+                  <FormLabel className="text-base -mt-4">Production Unit</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -239,7 +244,10 @@ const AddSewingMachineForm = ({
               name="brandName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">Brand Name</FormLabel>
+                  <div className="flex items-center justify-between"><FormLabel className="text-base">Brand Name</FormLabel>
+                   <div className="relative flex cursor-default select-none items-center rounded-sm px-0.5 py-0.5 text-sm ">
+                        <AddMachineBrandDialog />
+                      </div></div>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -250,9 +258,9 @@ const AddSewingMachineForm = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {MACHINE_BRANDS.map((brand) => (
-                        <SelectItem key={brand.name} value={brand.name}>
-                          {brand.name}
+                      {machineBrands.map((brand) => (
+                        <SelectItem key={brand.brandName} value={brand.brandName}>
+                          {brand.brandName}
                         </SelectItem>
                       ))}
                     </SelectContent>

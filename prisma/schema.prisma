@@ -488,3 +488,9 @@ model OperationSession {
   @@index([operatorRfid])
   @@index([startTimestamp])
 }
+
+model MachineBrands {
+  id        String   @id
+  brandName String   @unique
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+}
