@@ -9,16 +9,17 @@ datasource db {
 }
 
 model User {
-  id         String               @id @default(uuid())
-  name       String
-  email      String               @unique
-  phone      String
-  role       String
-  password   String
-  employeeId String
-  createdAt  DateTime             @default(now())
-  updatedAt  DateTime             @updatedAt
-  tslRecords TrafficLightSystem[]
+  id              String               @id @default(uuid())
+  name            String
+  email           String               @unique
+  phone           String
+  role            String
+  password        String
+  employeeId      String
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  DeviceDefectLog DeviceDefectLog[]
+  tslRecords      TrafficLightSystem[]
 }
 
 model Staff {
@@ -97,20 +98,23 @@ model ProductionLine {
 }
 
 model EliotDevice {
-  id                       String                 @id @default(uuid())
-  isAssigned               Boolean                @default(false)
-  createdAt                DateTime               @default(now())
-  updatedAt                DateTime               @updatedAt
-  installedDate            String
-  modelNumber              String
-  serialNumber             String                 @unique
-  hasTrained               Boolean?               @default(false)
-  status                   String?                @default("offline") @db.VarChar(50)
-  lastTimestamp            String?
-  OperationSession         OperationSession[]
-  ProductionData           ProductionData[]
-  ProductionEfficiencyData ProductionEfficiency[]
-  sewingMachines           SewingMachine?
+  id                                                               String                 @id @default(uuid())
+  isAssigned                                                       Boolean                @default(false)
+  createdAt                                                        DateTime               @default(now())
+  updatedAt                                                        DateTime               @updatedAt
+  installedDate                                                    String
+  modelNumber                                                      String
+  serialNumber                                                     String                 @unique
+  hasTrained                                                       Boolean?               @default(false)
+  status                                                           String?                @default("offline") @db.VarChar(50)
+  lastTimestamp                                                    String?
+  DeviceDefectLog_DeviceDefectLog_deviceIdToEliotDevice            DeviceDefectLog[]      @relation("DeviceDefectLog_deviceIdToEliotDevice")
+  DeviceDefectLog_DeviceDefectLog_replacementDeviceIdToEliotDevice DeviceDefectLog?       @relation("DeviceDefectLog_replacementDeviceIdToEliotDevice")
+  EliotDeviceDetails                                               EliotDeviceDetails?
+  OperationSession                                                 OperationSession[]
+  ProductionData                                                   ProductionData[]
+  ProductionEfficiencyData                                         ProductionEfficiency[]
+  sewingMachines                                                   SewingMachine?
 }
 
 model SewingMachine {
@@ -387,6 +391,7 @@ model ProductionSMV {
   smv            String
   timestamp      String
   obbOperationId String
+  createdAt      DateTime     @default(now())
   obbOperation   ObbOperation @relation(fields: [obbOperationId], references: [id], onDelete: Cascade)
   operator       Operator     @relation(fields: [operatorRfid], references: [rfid], onDelete: Cascade)
 
@@ -478,7 +483,8 @@ model OperationSession {
   endTimestamp      String?
   status            Boolean      @default(false)
   createdAt         DateTime     @default(now())
-  updatedAt         DateTime
+  updatedAt         DateTime     @default(now())
+  timeDifference    String?
   EliotDevice       EliotDevice? @relation(fields: [eliotSerialNumber], references: [serialNumber])
   ObbOperation      ObbOperation @relation(fields: [obbOperationId], references: [id], onDelete: Cascade)
   Operator          Operator     @relation(fields: [operatorRfid], references: [rfid], onDelete: Cascade)
@@ -490,7 +496,52 @@ model OperationSession {
 }
 
 model MachineBrands {
-  id        String   @id
-  brandName String   @unique
-  createdAt DateTime @default(now()) @db.Timestamp(6)
+  id         String   @id
+  brandName  String   @unique
+  created_at DateTime @default(now()) @db.Timestamp(6)
+}
+
+model DeviceDefectLog {
+  id                                                           String            @id
+  reportedAt                                                   DateTime          @default(now())
+  attendedAt                                                   DateTime
+  customDefectDescription                                      String?
+  status                                                       DefectStatus
+  fixedAt                                                      DateTime?
+  isReplaced                                                   Boolean           @default(false)
+  deviceId                                                     String
+  attendedByUserId                                             String
+  predefinedDefectId                                           String?
+  replacementDeviceId                                          String?           @unique
+  User                                                         User              @relation(fields: [attendedByUserId], references: [id])
+  EliotDevice_DeviceDefectLog_deviceIdToEliotDevice            EliotDevice       @relation("DeviceDefectLog_deviceIdToEliotDevice", fields: [deviceId], references: [id])
+  PredefinedDefect                                             PredefinedDefect? @relation(fields: [predefinedDefectId], references: [id])
+  EliotDevice_DeviceDefectLog_replacementDeviceIdToEliotDevice EliotDevice?      @relation("DeviceDefectLog_replacementDeviceIdToEliotDevice", fields: [replacementDeviceId], references: [id])
+}
+
+model EliotDeviceDetails {
+  id                 String      @id
+  company            String
+  assembledDate      DateTime
+  deliveredDate      DateTime
+  warrantyExpireDate DateTime
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime
+  eliotDeviceId      String      @unique
+  EliotDevice        EliotDevice @relation(fields: [eliotDeviceId], references: [id])
+}
+
+model PredefinedDefect {
+  id              String            @id
+  defectCode      String            @unique
+  description     String
+  DeviceDefectLog DeviceDefectLog[]
+}
+
+enum DefectStatus {
+  REPORTED
+  IN_PROGRESS
+  FIXED
+  REPLACEMENT_NEEDED
+  CANCELLED
 }

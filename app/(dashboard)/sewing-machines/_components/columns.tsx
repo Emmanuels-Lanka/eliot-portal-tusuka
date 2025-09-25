@@ -69,6 +69,15 @@ const ActionCell = ({ row }: { row: any }) => {
 }
 
 export const columns: ColumnDef<SewingMachine | any>[] = [
+     {
+  id: "rowNumber",
+  header: "",
+  cell: ({ row, table }) => {
+    const pageIndex = table.getState().pagination.pageIndex;
+    const pageSize = table.getState().pagination.pageSize;
+    return pageIndex * pageSize + row.index + 1;
+  },
+},
     {
         accessorKey: "serialNumber",
         header: "Serial No.",

@@ -68,9 +68,25 @@ const ActionCell = ({ row }: { row: any }) => {
 }
 
 export const columns: ColumnDef<Staff>[] = [
+     { id: "rowNumber",
+  header: "",
+  cell: ({ row, table }) => {
+    const pageIndex = table.getState().pagination.pageIndex;
+    const pageSize = table.getState().pagination.pageSize;
+    return pageIndex * pageSize + row.index + 1;
+  },
+},
+    {
+        accessorKey: "employeeId",
+        header: "Emp ID",
+    },
     {
         accessorKey: "name",
         header: "Name",
+    },
+    {
+        accessorKey: "rfid",
+        header: "RFID",
     },
     {
         accessorKey: "email",
@@ -128,10 +144,7 @@ export const columns: ColumnDef<Staff>[] = [
             )
         }
     },
-    {
-        accessorKey: "employeeId",
-        header: "Emp ID",
-    },
+   
     // {
     //     accessorKey: "rfid",
     //     header: "RFID",
