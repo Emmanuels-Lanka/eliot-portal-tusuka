@@ -13,6 +13,10 @@ export async function POST(req: Request) {
       });
     }
 
+    const brands = await db.machineBrands.findMany({
+
+  select: { brandName: true },
+});
     const errors: string[] = [];
     const machinesData = await Promise.all(
       body.map(async (item, index) => {
@@ -64,7 +68,7 @@ export async function POST(req: Request) {
               where: { name: unitName as string },
               select: { id: true },
             }),
-            MACHINE_BRANDS.find((brand) => brand.name === brandName),
+            brands.find((brand) => brand.brandName === brandName),
             db.machineType.findUnique({
               where: { code: machineType },
               select: { name: true },
