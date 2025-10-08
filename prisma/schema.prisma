@@ -105,6 +105,7 @@ model EliotDevice {
   installedDate                                                    String
   modelNumber                                                      String
   serialNumber                                                     String                 @unique
+  versionNo                                                        String?    
   hasTrained                                                       Boolean?               @default(false)
   status                                                           String?                @default("offline") @db.VarChar(50)
   lastTimestamp                                                    String?
