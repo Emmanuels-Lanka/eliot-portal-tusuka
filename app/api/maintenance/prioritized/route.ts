@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         // Step 1: Find all device IDs that have at least one 'REPLACEMENT_NEEDED' log.
