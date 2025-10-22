@@ -88,6 +88,35 @@ export const columns: ColumnDef<EliotDevice>[] = [
         header: "Model No.",
     },
     {
+        accessorKey: "versionNo",
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    className="-ml-3 text-center"
+                >
+                    Version No.
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const versionNo = row.getValue("versionNo") as string | null;
+            
+            return (
+                <div className="text-center">
+                <span className={cn(
+                    "text-sm font-medium",
+                    !versionNo && "text-muted-foreground"
+                )}>
+                    {versionNo || "-"}
+                </span>
+                </div>
+            )
+        }
+    },
+    {
         accessorKey: "isAssigned",
         header: ({ column }) => {
             return (
@@ -96,7 +125,7 @@ export const columns: ColumnDef<EliotDevice>[] = [
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                     className="-ml-3"
                 >
-                    Status
+                    Assignment Status
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
@@ -105,12 +134,14 @@ export const columns: ColumnDef<EliotDevice>[] = [
             const isAssigned = row.getValue("isAssigned") || false;
 
             return (
+                <div className="text-center">
                 <Badge className={cn(
                     "bg-green-600 font-normal",
                     isAssigned && "bg-orange-600"
                 )}>
                     {isAssigned ? "Assigned" : "Available"}
                 </Badge>
+                </div>
             )
         }
     },
@@ -134,6 +165,35 @@ export const columns: ColumnDef<EliotDevice>[] = [
 
             return (
                 <p>{formattedDate}</p>
+            )
+        }
+    },
+    {
+        accessorKey: "status",
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    className="-ml-3"
+                >
+                    Device Status
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const status = row.getValue("status");
+
+            return (
+                <div className="text-center">
+                <Badge className={cn(
+                    status === "online" && "bg-green-600 font-normal",
+                    status === "offline" && "bg-orange-600"
+                )}>
+                    {status === "online" ? "Online" : "Offline"}
+                </Badge>
+                </div>
             )
         }
     },
