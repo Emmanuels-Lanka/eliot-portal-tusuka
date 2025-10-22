@@ -40,7 +40,26 @@ export type getDateTypes = {
     LoginDate:string;
 
 };
-
+type ReportData = {
+  id: string;
+  operatorname: string;
+  operationname: string;
+  count: number;
+  smv: number;
+  target: number;
+  efficiency: number;
+  achievements: string;
+  unitname: string;
+  style: string;
+  machineid: string;
+  linename: string;
+  buyer: string;
+  employeeId: string;
+  rfid:string;
+  seqNo: string;
+  first: any;
+  last: any;
+};
 export async function getDailyData(obbsheetid:string,startDate:string,endDate:string)  : Promise<ReportData[]>   {
     
     try {
@@ -227,9 +246,8 @@ order by "operatorRfid"
 
 
 import { db } from "@/lib/db";
-import { ReportData } from "../../daily-report/_components/daily-report";
-import { poolForPortal } from "@/lib/postgres";
 
+import { poolForPortal } from "@/lib/postgres";
 
 export const getPrisma = async ()=>{
 

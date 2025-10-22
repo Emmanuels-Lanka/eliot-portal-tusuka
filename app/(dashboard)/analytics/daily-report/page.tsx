@@ -8,6 +8,8 @@ import LogTable from '../../../../components/log/LogTable'
 import { db } from '@/lib/db';
 import ReportTable from './_components/daily-report';
 import { UnderConstruction } from './_components/loadCompo';
+import DailyRepCompo from './_components/daily-rep';
+import { getUnit } from '../RLine-efficiency/_components/actions';
 
 const page = async () => {
 
@@ -25,12 +27,15 @@ const page = async () => {
     }
 });
 
+const unit = await getUnit();
+
   return (
     <div>
     
         <div className="container">
-        {/* <ReportTable obbSheets={obbSheets} ></ReportTable> */}
-        <UnderConstruction />
+          <DailyRepCompo obbSheets={obbSheets}  ></DailyRepCompo>
+        {/* <ReportTable obbSheets={obbSheets} ></ReportTable>     */}
+        {/* <UnderConstruction /> */}
       </div>
   </div>
   )

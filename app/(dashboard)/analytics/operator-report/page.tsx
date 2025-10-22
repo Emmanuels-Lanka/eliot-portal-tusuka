@@ -9,6 +9,7 @@ import { db } from '@/lib/db';
 import ReportTable from './_components/daily-report';
 import { getEmployee } from './_components/actions';
 import { UnderConstruction } from '../daily-report/_components/loadCompo';
+import NewReportTable from './_components/Daily-report-new';
 
 const page = async () => {
 
@@ -55,8 +56,9 @@ const emp = await getEmployee()
     <div>
     
         <div className="container">
+        <NewReportTable obbSheets={obbSheets} operators={emp}   ></NewReportTable>
         {/* <ReportTable obbSheets={obbSheets} operators={emp}   ></ReportTable> */}
-        <UnderConstruction />
+        {/* <UnderConstruction /> */}
       </div>
   </div>
   )

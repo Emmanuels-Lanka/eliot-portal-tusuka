@@ -1,4 +1,5 @@
 "use server";
+import { db } from "@/lib/db";
 import { ProductionDataType } from "./LogTable";
 import { poolForPortal } from "@/lib/postgres";
 
@@ -65,14 +66,74 @@ GROUP BY
   finally{
 
   }}
+}
+
+export async function getLogData (obbSheetId:string, date:string) {
+    const startDate = `${date} 00:00:00`; // Start of the day
+    const endDate = `${date} 23:59:59`; // End of the day
+  console.log("aaaaaaaaa")
+  try {
+    
+    const logData = await db.productionEfficiency.findMany({
+      where:{
+        obbOperation:{
+          obbSheetId:obbSheetId
+        },
+        timestamp:{
+          gte:startDate,
+          lte:endDate
+        },
+        
+      },
+      include:{
+        operator:{
+          select:{
+            name:true,
+            employeeId:true
+          }
+        },
+       EliotDevice: {
+  select: {
+    serialNumber: true,
+    sewingMachines: {
+      select: {
+        machineId: true
+      }
+    }
+  }
+}
+,
+        obbOperation:{
+          select:{
+            id:true,
+            seqNo:true,
+            target:true,
+            operation:{
+              select:{
+                name:true,
+                code:true
+              },
+            
+            
+            }
+          }
+        }
+        
+        
+      }        ,    orderBy: { createdAt: "desc" }
+    })
+
+    type LogData = typeof logData[number]
+    console.log("asdasdasd",logData)
+    return logData
 
 
-   
-     
+  } catch (error) {
+    console.error("Error fetching log data:", error)
+    throw error
+  }
 
 
 }
-
-
 
 

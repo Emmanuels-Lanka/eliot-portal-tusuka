@@ -47,7 +47,7 @@ const formSchema = z.object({
     date: z.date()
 });
 
-const UNITS = ["Unit 1", "Unit 2", "Unit 3", "Unit 4", "Unit 5"];
+const UNITS = ["UNIT 2"];
 
 const SelectUnitLineAndDate = ({
     handleSubmit

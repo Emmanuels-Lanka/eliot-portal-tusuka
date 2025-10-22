@@ -12,6 +12,8 @@ import { useToast } from "@/components/ui/use-toast";
 import EffiencyHeatmap from "@/components/dashboard/charts/efficiency-heatmap";
 import SelectObbSheetAndDate from "./unit-obb";
 import BarChartGraphEfficiencyRate from "./barchart";
+import BarChartGraphEfficiencyRatetst from "./tst";
+import DailyRepCompo from "./tst";
 
 interface AnalyticsChartProps {
   obbSheets:
@@ -81,27 +83,7 @@ const AnalyticsChart = ({ obbSheets, units }: AnalyticsChartProps) => {
   return (
     <>
       <div className="mx-auto max-w-7xl">
-        <SelectObbSheetAndDate
-          obbSheets={obbSheets}
-          handleSubmit={handleFetchProductions}
-          units={units}
-        ></SelectObbSheetAndDate>
-      </div>
-      <div className="mx-auto max-w-7xl">
-        {newDate && obbSheetId ? (
-          <div className="mt-8 flex flex-col gap-4">
-            <BarChartGraphEfficiencyRate
-              date={newDate}
-              obbSheet={obbSheetId}
-            ></BarChartGraphEfficiencyRate>
-          </div>
-        ) : (
-          <div className="mx-auto max-w-7xl">
-            <p className="text-center text-slate-500">
-              Please select the OBB sheet and date ☝️
-            </p>
-          </div>
-        )}
+      <DailyRepCompo obbSheets={obbSheets}/>
       </div>
     </>
   );

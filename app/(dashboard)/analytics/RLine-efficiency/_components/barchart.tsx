@@ -337,7 +337,7 @@ for (const [operatorRfid, records] of Array.from(groupedByOperator.entries())) {
 
     operations.forEach(([operationName, prodEntries], index) => {
       const pin = hasMultipleOps  ? "* " : "";
-      const opId = pin + prodEntries[0].operator.employeeId; // ← add this line
+      const opId =  prodEntries[0].operator.employeeId; // ← add this line
       const seqNo = prodEntries[0].obbOperation.seqNo;
       const firstEntry = prodEntries[0];
       const totalProduction = Number(firstEntry.totalPcs);
@@ -351,7 +351,7 @@ for (const [operatorRfid, records] of Array.from(groupedByOperator.entries())) {
       const onStndEff = Math.max(0, Number(((earnMins / (minutes - offStand)) * 100).toFixed(2)));
 
       result.push({
-        date:reportDate,
+        date:date.from,
         opId,
         seqNo,
         operator,

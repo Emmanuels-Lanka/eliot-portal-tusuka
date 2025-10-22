@@ -7,8 +7,135 @@ import { ReportData } from "./daily-report";
 import { poolForPortal } from "@/lib/postgres";
 import { NextResponse } from "next/server";
 
+// export async function fetchDirectProductionOpData(obbSheetId: string, date: string) {
+   
+   
+//     if (!obbSheetId || !date) {
+//         throw new Error("Missing required parameters: obbSheetId or date");
+//     }
+
+//     const startDate = `${date} 00:00:00`; // Start of the day
+//     const endDate = `${date} 23:59:59`; // End of the day
 
 
+//     try {
+//         const productionData = await db.productionEfficiency.findMany({
+//             where: {
+//                 obbOperation: { obbSheetId: obbSheetId },
+//                 timestamp: { gte: startDate, lte: endDate }
+//             },
+//             include: {
+//                 operator: {
+//                     select: {
+//                         name: true,
+//                         employeeId: true,
+//                         rfid: true,
+//                         OperatorEffectiveTime:{
+//                           where:{
+//                             loginTimestamp:{
+//                               gte:startDate,
+//                               lte:endDate
+//                             }
+//                           }
+//                         }
+//                     }
+//                 },
+//                 obbOperation: {
+//                     select: {
+//                         id: true,
+//                         seqNo: true,
+//                         target: true,
+//                         smv: true,
+//                         part: true,
+//                         operation: { select: { name: true } },
+//                         sewingMachine: { select: { machineId: true } }
+//                     }
+//                 }                
+//             },
+//             orderBy: { createdAt: "desc" }
+//         });
+
+      
+
+//         return { data: productionData, message: "Production data fetched successfully" };
+//     } catch (error) {
+//         console.error("[PRODUCTION_EFFICIENCY_ERROR]", error);
+//         throw new Error("Internal Server Error");
+//     }
+
+
+// }
+export async function fetchDirectProductionOpData(productionLineId: string, date: string) {
+   
+   
+    if (!productionLineId || !date) {
+        throw new Error("Missing required parameters: obbSheetId or date");
+    }
+
+    const startDate = `${date} 00:00:00`; // Start of the day
+    const endDate = `${date} 23:59:59`; // End of the day
+
+
+    try {
+        const productionData = await db.productionEfficiency.findMany({
+            where: {
+                obbOperation: { obbSheet:{
+                  productionLineId:productionLineId
+                } },
+                timestamp: { gte: startDate, lte: endDate }
+            },
+            include: {
+                operator: {
+                    select: {
+                        name: true,
+                        employeeId: true,
+                        rfid: true,
+                        designation:true,
+                        OperatorEffectiveTime:{
+                          where:{
+                            loginTimestamp:{
+                              gte:startDate,
+                              lte:endDate
+                            }
+                          }
+                        }
+                    }
+                },
+                obbOperation: {
+                    select: {
+                        id: true,
+                        seqNo: true,
+                        target: true,
+                        smv: true,
+                        part: true,
+                        
+                        operation: { select: { name: true ,code:true} },
+                        sewingMachine: { select: { machineId: true } }
+                    }
+                }                
+            },
+            orderBy: { createdAt: "desc" }
+        });
+
+        const line= await db.productionLine.findFirst({
+          select:{
+            name:true,
+            unit:true,
+
+          },
+          where:{
+            id:productionLineId
+          }
+        })
+
+        return { data: productionData,line:line, message: "Production data fetched successfully" };
+    } catch (error) {
+        console.error("[PRODUCTION_EFFICIENCY_ERROR]", error);
+        throw new Error("Internal Server Error");
+    }
+
+
+}
 export async function getDailyData(obbsheetid:string,date:string)  : Promise<ReportData[]>   {
     
     {
@@ -135,3 +262,37 @@ export const getLatestRecordsPerOperator = async (obbSheetId: string, date: stri
   }
 };
 
+
+
+export const getObbDetails = async (obbSheetId:string)=>{
+
+  try {
+
+    const obb = await db.obbSheet.findFirst({
+      select:{
+        productionLine:{
+          select:{
+            name:true
+          }
+        },
+        buyer:true,
+        style:true,
+        unit:{
+          select:{
+            name:true
+          }
+        }
+      },
+      where:{
+        id:obbSheetId
+      }
+    })
+    
+    return obb
+    console.log(obb)
+    
+  } catch (error) {
+    console.error("[OBB_FETCH_ERROR]", error);
+    return { error: "Internal Error" };
+  }
+}

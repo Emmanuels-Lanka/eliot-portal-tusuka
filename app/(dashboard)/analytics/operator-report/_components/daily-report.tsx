@@ -68,6 +68,9 @@ const ReportTable = ({ obbSheets, operators }: AnalyticsChartProps) => {
     
     data.date.setDate(data.date.getDate() + 1);
     setOperatorID(data.operatorId);
+
+    console.log(start,end,data.operatorId)
+
   };
 
   const processDatas = (data: newData[]) => {

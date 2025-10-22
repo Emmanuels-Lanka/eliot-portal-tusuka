@@ -242,7 +242,7 @@ export const SIDEBAR_ROUTES = [
       //     icon: Table
       // },
       {
-        label: "Monthly Efficiency Report",
+        label: "Avg Efficiency Report- Individual Operator",
         href: "/analytics/operator-report",
         icon: Table,
       },
@@ -581,7 +581,7 @@ export const HEADER_INFO = [
     icon: UserRoundCog,
   },
   {
-    label: "Monthly Efficiency Report",
+        label: "Avg Efficiency Report- Individual Operator",
     href: "/analytics/operator-report",
     icon: Table,
   },

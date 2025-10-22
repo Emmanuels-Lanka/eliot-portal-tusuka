@@ -1,8 +1,70 @@
-
-
 "use server";
 import { poolForPortal } from "@/lib/postgres";
 
+
+import { db } from "@/lib/db";
+
+export async function fetchDirectOpProductionData( operatorID:string ,start: string,end: string) {
+   
+   
+    if (!operatorID || !start || !end) {
+        throw new Error("Missing required parameters: obbSheetId or date");
+    }
+
+    const startDate = `${start} 00:00:00`; // Start of the day
+    const endDate = `${end} 23:59:59`; // End of the day
+
+
+    try {
+        const productionData = await db.productionEfficiency.findMany({
+            where: {
+                
+                timestamp: { gte: startDate, lte: endDate },
+                operator:{
+                  id:operatorID
+                }
+            },
+            include: {
+                operator: {
+                    select: {
+                        name: true,
+                        employeeId: true,
+                        rfid: true,
+                        OperatorEffectiveTime:{
+                          where:{
+                            loginTimestamp:{
+                              gte:startDate,
+                              lte:endDate
+                            }
+                          }
+                        }
+                    }
+                },
+                obbOperation: {
+                    select: {
+                        id: true,
+                        seqNo: true,
+                        target: true,
+                        smv: true,
+                        part: true,
+                        operation: { select: { name: true } },
+                        sewingMachine: { select: { machineId: true } }
+                    }
+                }                
+            },
+            orderBy: { createdAt: "desc" }
+        });
+
+     
+
+        return { data: productionData, message: "Production data fetched successfully" };
+    } catch (error) {
+        console.error("[PRODUCTION_EFFICIENCY_ERROR]", error);
+        throw new Error("Internal Server Error");
+    }
+
+
+}
 
 
 

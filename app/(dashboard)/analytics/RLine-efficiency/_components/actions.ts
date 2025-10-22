@@ -1,7 +1,7 @@
 "use server";
 import { DataRecord, EfficiencyData } from "./barchart";
 import { ObbSheet } from "@prisma/client";
-import { poolForPortal } from "@/lib/postgres";
+import { poolForPortal, poolForRFID } from "@/lib/postgres";
 import { db } from "@/lib/db";
 
 type defects = {
@@ -385,4 +385,116 @@ const merged = data.map(d => {
   } catch (error) {
     
   }
+}
+
+export async function fetchLineEndPass(lineId:string,date:string) {
+
+ try {
+   
+    const query = `select count(*) from "ProductDefect" pd
+inner join "Product" p on p.id = pd."productId"
+inner join "GmtData" g on g."id" = p."frontGmtId"
+where g."lineId" = $1 and pd."timestamp" like $2
+and pd."qcStatus" = 'pass' and pd.part = 'line-end'`
+
+
+    const values = [lineId, date+"%"];
+    const result = await poolForRFID.query(query, values);
+    console.log(result.rows)
+    return result.rows[0];
+  } catch (error) {
+    console.error("[TEST_ERROR]", error);
+    throw error;
+  }
+}
+
+export async function getStyleDataByLine(productionLineId: string, date: string){
+  try {
+        const startDate = `${date} 00:00:00`; // Start of the day
+    const endDate = `${date} 23:59:59`; // End of the day
+
+    const uniqueSheets = await db.productionEfficiency.findMany({
+  where: {
+    obbOperation: { obbSheet: { productionLineId: productionLineId } },
+    timestamp: { gte: startDate, lte: endDate }
+  },
+  select: {
+    obbOperation: {
+      select: {
+        obbSheet: true
+      }
+    }
+  },
+  distinct: [] 
+})
+
+
+console.log(uniqueSheets,"aaaa")
+return uniqueSheets;
+  } catch (error) {
+    
+  }
+}
+
+
+
+export async function fetchDirectProductionOpData(productionLineId: string, date: string) {
+   
+   
+    if (!productionLineId || !date) {
+        throw new Error("Missing required parameters: obbSheetId or date");
+    }
+
+    const startDate = `${date} 00:00:00`; // Start of the day
+    const endDate = `${date} 23:59:59`; // End of the day
+
+
+    try {
+        const productionData = await db.productionEfficiency.findMany({
+            where: {
+                obbOperation: { obbSheet:{
+                  productionLineId:productionLineId
+                } },
+                timestamp: { gte: startDate, lte: endDate }
+            },
+            include: {
+                operator: {
+                    select: {
+                        name: true,
+                        employeeId: true,
+                        rfid: true,
+                        OperatorEffectiveTime:{
+                          where:{
+                            loginTimestamp:{
+                              gte:startDate,
+                              lte:endDate
+                            }
+                          }
+                        }
+                    }
+                },
+                obbOperation: {
+                    select: {
+                        id: true,
+                        seqNo: true,
+                        target: true,
+                        smv: true,
+                        part: true,
+                        operation: { select: { name: true } },
+                        sewingMachine: { select: { machineId: true } }
+                    }
+                }                
+            },
+            orderBy: { createdAt: "desc" }
+        });
+
+      
+
+        return { data: productionData, message: "Production data fetched successfully" };
+    } catch (error) {
+        console.error("[PRODUCTION_EFFICIENCY_ERROR]", error);
+        throw new Error("Internal Server Error");
+    }
+
+
 }

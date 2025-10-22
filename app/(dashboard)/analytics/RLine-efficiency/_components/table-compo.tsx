@@ -8,174 +8,77 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ExtendedOperatorRfidData, TablePropType } from "./barchart";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-export interface TableProps {
-  tableProp: ExtendedOperatorRfidData[];
+
+type SessionTotals = {
+  totalAvailableHours: number;
+  totalProductionStandardHours: number;
+  totalOffStandHours: number;
+  totalOverallEfficiency: number;
+  totalOnStandEfficiency: number;
+  totalAvailableMins: number;
+  totalEarnMins: number;
+  totalOffStandMins: number;
+};
+// Updated interface to match summarizeEfficiencies output
+export interface SummaryTableProps {
+  tableProp: Array<{
+    operator: string;
+    operatorId: string;
+    totalEarnMins: number;
+    totalAvailableMins: number;
+    efficiency: number;
+    onStandEfficiency: number;
+    operations: string;
+    totalOffStandMins?: number; // Add this if not included in summary
+  }>;
   date: { from: string; to: string };
   obbData: any[];
+  footerData?:SessionTotals
 }
-export function TableDemo({ tableProp, date, obbData }: TableProps) {
+
+export function TableDemo({ tableProp, date, obbData,footerData }: SummaryTableProps) {
   const reportRef = useRef<HTMLDivElement | null>(null);
 
-  //   const handlePrint = async () => {
-
-  //     const baseUrl = window.location.origin;
-  //     const printContent = reportRef.current?.innerHTML;
-  //     const footer = reportRef2.current?.innerHTML;
-  //     // let selectedDate = new Date(date);
-
-  //     // Subtract one day from the selected date
-  //     // selectedDate.setDate(selectedDate.getDate());
-
-  //     // Format the adjusted date back to a string
-  //     // const formattedDate = selectedDate.toISOString().split('T')[0];
-  //     const formattedDate = date
-
-  //     const htmlContent = `
-  //       <html>
-  //         <head>
-  //           <title>Line Efficiency Report</title>
-  //           <style>
-  //   body {
-  //     font-family: Arial, sans-serif;
-  //     margin: 0;
-  //     padding: 20px;
-  //     font-size: 12px; /* Reduce font size */
-  //   }
-  //   .container {
-  //     width: 100%;
-  //     margin: 0 auto;
-  //     padding: 10px; /* Reduce padding */
-  //     box-sizing: border-box;
-  //   }
-  //   table {
-  //     width: 100%;
-  //     border-collapse: collapse;
-  //     margin-top: 10px; /* Reduce margin */
-  //     font-size: 10px; /* Smaller font size for table */
-  //   }
-  //   th, td {
-  //     border: 1px solid #ddd;
-  //     padding: 4px; /* Reduce cell padding */
-  //   }
-  //   th {
-  //     text-align: center;
-  //     background-color: gray;
-  //     color: white; /* Add contrast for better readability */
-  //   }
-  //   td {
-  //     text-align: right;
-  //   }
-  //   .logo-div {
-  //     text-align: center;
-  //     margin-bottom: 10px; /* Reduce spacing */
-  //   }
-  //   .logo-div img {
-  //     width: 150px; /* Adjust logo size */
-  //     height: auto;
-  //   }
-  //   .text-center {
-  //     text-align: center;
-  //   }
-  //   .footer-logo img {
-  //     width: 100px; /* Adjust footer logo size */
-  //     height: auto;
-  //   }
-  // </style>
-
-  //         </head>
-  //         <body>
-  //           <div class="logo-div">
-  //             <img src="${baseUrl}/ha-meem.png" alt="Ha-Meem Logo" style="margin-top:10px;"/>
-  //             <h5 style="margin-top:10px;">~ Bangladesh ~</h5>
-  //           <h3 class="text-center">Individual Line Efficiency Report</h3>
-
-  //           </div>
-
-  //          <div style="display: flex; justify-content: space-around; gap: 20px;">
-  //   <!-- Left Block -->
-  //   <div>
-  //     <h5>Factory Name: Apparel Gallery LTD</h5>
-  //     <h5>Title: Individual Line Efficiency Report</h5>
-  //     <h5>Date: ${formattedDate}</h5>
-  //     <h5>Style: ${obbData[0].style}</h5>
-  //   </div>
-  //   <!-- Right Block -->
-  //   <div>
-  //     <h5>Buyer: ${obbData[0].buyer}</h5>
-  //     <h5>Color: ${obbData[0].colour}</h5>
-  //     <h5>Line: ${obbData[0].line}</h5>
-  //     <h5>Unit: ${obbData[0].unit}</h5>
-  //   </div>
-  // </div>
-  //           ${printContent}
-  //           ${footer}
-
-  //           <div style="display:  flex; justify-content: space-between; align-items: center; margin-top: 50px;">
-  //             <div>
-  //               <p><a href="https://www.portal.eliot.global/">https://www.portal.eliot.global/</a></p>
-  //             </div>
-  //             <div class="footer-logo">
-  //               <img src="${baseUrl}/eliot-logo.png" alt="Company Footer Logo" />
-  //             </div>
-  //           </div>
-  //         </body>
-  //       </html>
-  //     `;
-
-  //     const blob = new Blob([htmlContent], { type: 'text/html' });
-  //     const url = URL.createObjectURL(blob);
-
-  //     const printWindow = window.open(url, '', 'width=800,height=600');
-
-  //     if (printWindow) {
-  //       printWindow.onload = () => {
-  //         printWindow.print();
-  //         URL.revokeObjectURL(url);
-  //       };
-  //     } else {
-  //       console.error("Failed to open print window");
-  //     }
-  //   };
-
-  // console.log("td",tableProp)
+  // Convert minutes to hours for display
+  const minutesToHours = (minutes: number): number => {
+    return Number((minutes / 60).toFixed(2));
+  };
 
   function calculateEfficiencyRatio(
-    tableProp: ExtendedOperatorRfidData[]
+    tableProp: SummaryTableProps['tableProp']
   ): string {
-    const totalAvailableHours = tableProp.reduce((a, b) => a + b.hours, 0);
-    const totalStdHours = tableProp.reduce((a, b) => a + b.earnHours, 0);
+    const totalAvailableHours = tableProp.reduce((a, b) => a + minutesToHours(b.totalAvailableMins), 0);
+    const totalStdHours = tableProp.reduce((a, b) => a + minutesToHours(b.totalEarnMins), 0);
 
     // Avoid division by zero
     if (totalAvailableHours === 0) return "0.0";
 
-    return ((totalStdHours / totalAvailableHours) * 100).toFixed(2); // Format to 2 decimal places
+    return ((totalStdHours / totalAvailableHours) * 100).toFixed(2);
   }
 
   function calculateOnEfficiencyRatio(
-    tableProp: ExtendedOperatorRfidData[]
+    tableProp: SummaryTableProps['tableProp']
   ): string {
-    const totalAvailableHours = tableProp.reduce((a, b) => a + b.hours, 0);
-    const totalStdHours = tableProp.reduce((a, b) => a + b.earnHours, 0);
-    const offStand = tableProp.reduce((a, b) => a + b.offStandHours, 0);
+    const totalAvailableHours = tableProp.reduce((a, b) => a + minutesToHours(b.totalAvailableMins), 0);
+    const totalStdHours = tableProp.reduce((a, b) => a + minutesToHours(b.totalEarnMins), 0);
+    const offStand = tableProp.reduce((a, b) => a + minutesToHours(b.totalOffStandMins || 0), 0);
 
-    const res = Math.max(
-      0,
-      Number(
-        ((totalStdHours / (totalAvailableHours - offStand)) * 100).toFixed(2)
-      )
-    );
+    const adjustedAvailable = totalAvailableHours - offStand;
+    if (adjustedAvailable <= 0) return "0.0";
 
-    // Avoid division by zero
-    if (totalAvailableHours === 0) return "0.0";
-
-    return res.toString(); // Format to 2 decimal places
+    const res = Math.max(0, Number(((totalStdHours / adjustedAvailable) * 100).toFixed(2)));
+    return res.toString();
   }
+
+  // Helper function to check if operator has multiple operations
+  const hasMultipleOperations = (operations: string): boolean => {
+    return operations.includes(',');
+  };
 
   const handleDownloadPDF = () => {
     if (!obbData.length) return;
@@ -199,7 +102,7 @@ export function TableDemo({ tableProp, date, obbData }: TableProps) {
       align: "center",
     });
     pdf.text(
-      "Line Individual Efficiency Report",
+      "SUMMARY EFFICIENCY REPORT - LINE",
       pdf.internal.pageSize.getWidth() / 2,
       40,
       { align: "center" }
@@ -227,7 +130,7 @@ export function TableDemo({ tableProp, date, obbData }: TableProps) {
     ).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
     const currentTime = `${formattedDate} - ${formattedTime}`;
     pdf.text(
-      [`Document Date: ${tableProp[0]?.date}`, `Printed Date: ${currentTime}`],
+      [`Document Date: ${date.from}`, `Printed Date: ${currentTime}`],
       pdf.internal.pageSize.getWidth() - 80,
       30
     );
@@ -237,35 +140,32 @@ export function TableDemo({ tableProp, date, obbData }: TableProps) {
       40
     );
 
-    const sortedTableProp = [...tableProp].sort(
-      (a, b) => b.onStndEff - a.onStndEff
-    );
+    // Sort by efficiency or operator ID based on current view
+    const sortedForPDF = showLowPerformers 
+      ? [...filteredTableProp].sort((a, b) => b.onStandEfficiency - a.onStandEfficiency)
+      : [...filteredTableProp].sort((a, b) => a.operatorId.localeCompare(b.operatorId));
 
-    const tableData = sortedTableProp.map((row) => [
-      row.opId,
-      row.operator.name,
-      row.seqNo,
-      row.operation,
-      row.production,
-      row.smv,
-      row.hours,
-      row.earnHours,
-      row.offStandHours,
-      row.ovlEff,
-      row.onStndEff,
+    // Modified table data for summary
+    const tableData = sortedForPDF.map((row, index) => [
+      index + 1, // Sequence number
+      hasMultipleOperations(row.operations) ? `${row.operatorId} *` : row.operatorId,
+      hasMultipleOperations(row.operations) ? `${row.operator} *` : row.operator,
+      row.operations,
+      minutesToHours(row.totalAvailableMins),
+      minutesToHours(row.totalEarnMins),
+      minutesToHours(row.totalOffStandMins || 0),
+      row.efficiency,
+      row.onStandEfficiency,
     ]);
 
-    // ✅ use autoTable(pdf, …) here too
     autoTable(pdf, {
       startY: 45,
       head: [
         [
+          "S/N",
           "MO ID",
           "MO Name",
-          "Operation Code",
-          "Operation",
-          "Production pieces",
-          "SMV",
+          "Operations",
           "Available Hours",
           "Production Standard Hours",
           "Off Stand Hours",
@@ -276,62 +176,65 @@ export function TableDemo({ tableProp, date, obbData }: TableProps) {
       body: tableData,
       theme: "grid",
       headStyles: {
-  fillColor: [128, 128, 128],
-  textColor: "#FFFFFF"  // white header text
-},
+        fillColor: [128, 128, 128],
+        textColor: "#FFFFFF"
+      },
       styles: {
-  fontSize: 8,
-  cellPadding: 2,
-  textColor: "#000000"  // Force black text
-},
+        fontSize: 8,
+        cellPadding: 2,
+        textColor: "#000000"
+      },
       columnStyles: {
         0: { halign: "center" },
+        1: { halign: "center" },
+        2: { halign: "left" },
         3: { halign: "left" },
         4: { halign: "right" },
         5: { halign: "right" },
         6: { halign: "right" },
         7: { halign: "right" },
         8: { halign: "right" },
-        9: { halign: "right" },
-        10: { halign: "right" },
       },
     });
 
     const finalY = (pdf as any).lastAutoTable.finalY || 45;
 
-    autoTable(pdf, {
-      startY: finalY + 5,
-      headStyles: { fillColor: [128, 128, 128] },
-      head: [
-        [
-          { content: "" },
-          "Total Available Hours",
-          "Total Production Standard Hours",
-          "Total Off Stand Hours",
-          "Overall Efficiency",
-          "On Stand Efficiency",
-        ],
-      ],
-      body: [
-        [
-          { content: "Total Line Efficiency" },
-          tableProp.reduce((a, b) => a + b.hours, 0).toFixed(1),
-          tableProp.reduce((a, b) => a + b.earnHours, 0).toFixed(1),
-          tableProp.reduce((a, b) => a + b.offStandHours, 0).toFixed(1),
-          calculateEfficiencyRatio(tableProp),
-          calculateOnEfficiencyRatio(tableProp),
-        ],
-      ],
-      theme: "grid",
-      styles: { fontSize: 8, cellPadding: 2 },
-      columnStyles: {
-        5: { halign: "right" },
-        6: { halign: "right" },
-        7: { halign: "right" },
-        8: { halign: "right" },
-        9: { halign: "right" },
-      },
-    });
+   autoTable(pdf, {
+  startY: finalY + 5,
+  headStyles: { fillColor: [128, 128, 128] },
+  head: [
+    [
+      { content: "" },
+      { content: "" },
+      "Total Available Hours",
+      "Total Production Standard Hours",
+      "Total Off Stand Hours",
+      "Overall Efficiency",
+      "On Stand Efficiency",
+    ],
+  ],
+  body: [
+    [
+      { content: "" },
+      { content: "Total Line Efficiency" },
+      footerData?.totalAvailableHours ?? "-",
+      footerData?.totalProductionStandardHours ?? "-",
+      footerData?.totalOffStandHours ?? "-",
+      `${footerData?.totalOverallEfficiency ?? "-"}%`,
+      `${footerData?.totalOnStandEfficiency ?? "-"}%`,
+    ],
+  ],
+  theme: "grid",
+  styles: { fontSize: 8, cellPadding: 2 },
+  columnStyles: {
+    2: { halign: "right" },
+    3: { halign: "right" },
+    4: { halign: "right" },
+    5: { halign: "right" },
+    6: { halign: "right" },
+  },
+});
+
 
     const pageHeight = pdf.internal.pageSize.getHeight();
     pdf.setFontSize(8);
@@ -350,24 +253,23 @@ export function TableDemo({ tableProp, date, obbData }: TableProps) {
     );
 
     pdf.save(
-      `Line_Individual_Efficiency_report_${obbData[0]?.line}_${tableProp[0]?.date}.pdf`
+      `Line_Individual_Efficiency_Summary_${obbData[0]?.line}_${date.from}.pdf`
     );
   };
 
-  const sortedTableProp = [...tableProp].sort(
-    (a, b) => b.onStndEff - a.onStndEff
-  );
-
-  const [showLowPerformers, setShowLowPerformers] = useState(false);
   const [filterThreshold, setFilterThreshold] = useState<number>(50);
+  const [showLowPerformers, setShowLowPerformers] = useState(false);
+
+  // Sort logic: by MO ID initially, by efficiency when filtered
+  const sortedTableProp = showLowPerformers 
+    ? [...tableProp].filter((op) => op.onStandEfficiency < filterThreshold).sort((a, b) => b.onStandEfficiency - a.onStandEfficiency)
+    : [...tableProp].sort((a, b) => a.operatorId.localeCompare(b.operatorId));
 
   const toggleLowPerformers = () => {
     setShowLowPerformers((prev) => !prev);
   };
 
-  const filteredTableProp = showLowPerformers
-    ? sortedTableProp.filter((op) => op.onStndEff < filterThreshold)
-    : sortedTableProp;
+  const filteredTableProp = sortedTableProp;
 
   return (
     <div>
@@ -403,7 +305,7 @@ export function TableDemo({ tableProp, date, obbData }: TableProps) {
             className="mx-auto w-[120px] h-auto mt-[10px]"
           />
           <h5 className="mt-[10px]">~ Bangladesh ~</h5>
-          <h1 className="text-center">Line Individual Efficiency report</h1>
+          <h1 className="text-center">SUMMARY EFFICIENCY REPORT - LINE</h1>
           <hr className="my-4" />
         </div>
 
@@ -412,18 +314,12 @@ export function TableDemo({ tableProp, date, obbData }: TableProps) {
             <h5 className="m-0 font-semibold">
               Factory Name: Apparel Gallery LTD
             </h5>
-
-            <h5 className="m-0 font-semibold">Unit: {obbData[0].unit}</h5>
+            <h5 className="m-0 font-semibold">Unit: {obbData[0]?.unit}</h5>
           </div>
           <div className="flex-1 justify-around ml-[10px] leading-[1.5]">
-            {/* <h5 className="m-0 font-semibold">Buyer: {obbData[0]?.buyer}</h5>
-      <h5 className="m-0 font-semibold">Style Name: {obbData[0]?.style}</h5> */}
             <h5 className="m-0 font-semibold">
-              {" "}
-              Date:{" "}
-              {tableProp[0]?.date}
+              Date: {date.from}
             </h5>
-
             <h5 className="font-semibold">Line Name: {obbData[0]?.line}</h5>
           </div>
           <div>
@@ -431,70 +327,56 @@ export function TableDemo({ tableProp, date, obbData }: TableProps) {
           </div>
         </div>
         <div className="my-5">
-           ( * ) indicates operator has multiple operations
+          ( * ) indicates operator has multiple operations
         </div>
         <Table style={{ tableLayout: "fixed" }}>
-          {/* <TableCaption>LINE EFFICIENCY.</TableCaption> */}
           <TableHeader>
             <TableRow>
+              <TableHead className="text-center">S/N</TableHead>
               <TableHead className="text-center">MO ID</TableHead>
               <TableHead className="">MO Name</TableHead>
-              <TableHead className="w-[100px] text-center">
-                Operation Code
-              </TableHead>
-              <TableHead className="w-[150px]">Operation</TableHead>
-              <TableHead className="text-center">Production pieces</TableHead>
-              <TableHead className="text-center">SMV</TableHead>
+              <TableHead className="w-[200px]">Operations</TableHead>
               <TableHead className="text-center">Available Hours</TableHead>
               <TableHead className="text-center">
-                Prodution Standard Hours{" "}
+                Production Standard Hours
               </TableHead>
-              <TableHead className="text-center">Off Stand Hours </TableHead>
-              <TableHead className="text-center">Overall Efficiency </TableHead>
+              <TableHead className="text-center">Off Stand Hours</TableHead>
+              <TableHead className="text-center">Overall Efficiency</TableHead>
               <TableHead className="text-center">
-                On Stand Efficiency{" "}
+                On Stand Efficiency
               </TableHead>
-              {/* <TableHead className="text-right">Amount</TableHead> */}
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredTableProp.map((invoice, index) => (
               <TableRow key={index}>
                 <TableCell className="text-center px-2 py-2">
-                  {invoice.opId}
+                  {index + 1}
+                </TableCell>
+                <TableCell className="text-center px-2 py-2">
+                  {hasMultipleOperations(invoice.operations) ? `${invoice.operatorId} *` : invoice.operatorId}
                 </TableCell>
                 <TableCell className="font-medium px-2 py-2">
-                  {invoice.operator.name}
-                </TableCell>
-                <TableCell className="font-medium text-center px-2  py-2">
-                  {invoice.seqNo}
+                  {hasMultipleOperations(invoice.operations) ? `${invoice.operator} *` : invoice.operator}
                 </TableCell>
                 <TableCell className="font-medium px-2 py-2">
-                  {invoice.operation}
-                </TableCell>
-                <TableCell className="font-medium text-center px-2 py-2">
-                  {invoice.production}
-                </TableCell>
-                <TableCell className="font-medium text-center px-2 py-2">
-                  {invoice.smv}
-                </TableCell>
-
-                <TableCell className="text-center font-medium  px-2 py-2">
-                  {invoice.hours}
+                  {invoice.operations}
                 </TableCell>
                 <TableCell className="text-center font-medium px-2 py-2">
-                  {invoice.earnHours}
+                  {minutesToHours(invoice.totalAvailableMins)}
                 </TableCell>
                 <TableCell className="text-center font-medium px-2 py-2">
-                  {invoice.offStandHours}
+                  {minutesToHours(invoice.totalEarnMins)}
                 </TableCell>
                 <TableCell className="text-center font-medium px-2 py-2">
-                  {invoice.ovlEff}
+                  {minutesToHours(invoice.totalOffStandMins || 0)}
                 </TableCell>
                 <TableCell className="text-center font-medium px-2 py-2">
-                  {invoice.onStndEff}
+                  {invoice.efficiency}%
                 </TableCell>
-                {/* <TableCell className="text-r font-mediumight">{invoice.totalAmount}</TableCell> */}
+                <TableCell className="text-center font-medium px-2 py-2">
+                  {invoice.onStandEfficiency}%
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -503,12 +385,12 @@ export function TableDemo({ tableProp, date, obbData }: TableProps) {
         <Table className="mt-12">
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={5}></TableCell>
+              <TableCell colSpan={4}></TableCell>
               <TableCell className="text-right">
                 Total Available Hours
               </TableCell>
               <TableCell className="text-center">
-                Total Prodution Standard Hours
+                Total Production Standard Hours
               </TableCell>
               <TableCell className="text-center">
                 Total Off Stand Hours
@@ -521,21 +403,21 @@ export function TableDemo({ tableProp, date, obbData }: TableProps) {
               </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell colSpan={5}>Total Line Efficiency</TableCell>
+              <TableCell colSpan={4}>Total Machine Operators Efficiency</TableCell>
               <TableCell className="text-right">
-                {tableProp.reduce((a, b) => a + b.hours, 0).toFixed(1)}
+                {footerData?.totalAvailableHours}
               </TableCell>
               <TableCell className="text-center">
-                {tableProp.reduce((a, b) => a + b.earnHours, 0).toFixed(1)}
+                {footerData?.totalProductionStandardHours}
               </TableCell>
               <TableCell className="text-center">
-                {tableProp.reduce((a, b) => a + b.offStandHours, 0).toFixed(1)}
+                {footerData?.totalOffStandHours}
               </TableCell>
               <TableCell className="text-center">
-                {calculateEfficiencyRatio(tableProp)}
+                {footerData?.totalOverallEfficiency}%
               </TableCell>
               <TableCell className="text-center">
-                {calculateOnEfficiencyRatio(tableProp)}
+                {footerData?.totalOnStandEfficiency}%
               </TableCell>
             </TableRow>
           </TableFooter>
