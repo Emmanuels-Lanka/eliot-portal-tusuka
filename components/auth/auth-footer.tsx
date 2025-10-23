@@ -7,7 +7,7 @@ const AuthFooter = ({ page }: { page?: string }) => {
             page !== 'root' && "bg-white/80"
         )}>
             <p className='text-sm text-slate-600 font-normal'>
-                © 2024, Emmanuel&apos;s Lanka Pvt Ltd. All rights reserved
+            © {new Date().getFullYear()}, Emmanuel&apos;s Lanka Pvt Ltd. All rights reserved
             </p>
             <div className='flex items-end gap-1'>
                 <p className='text-sm text-slate-600 font-semibold'>ELIoT Web Portal</p>

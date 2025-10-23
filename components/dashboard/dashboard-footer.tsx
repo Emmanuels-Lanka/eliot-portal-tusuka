@@ -3,7 +3,7 @@ const DashboardFooter = () => {
   return (
     <footer className='w-full md:h-[40px] max-md:py-2 px-4 bg-white flex justify-between items-center gap-2'>
         <p className='text-sm text-slate-600 font-normal'>
-            © 2024, Emmanuel&apos;s Lanka Pvt Ltd. All rights reserved
+            © {new Date().getFullYear()}, Emmanuel&apos;s Lanka Pvt Ltd. All rights reserved
         </p>
         <div className='flex items-end gap-1'>
             <p className='text-sm text-slate-600 font-semibold'>ELIoT Web Portal</p>

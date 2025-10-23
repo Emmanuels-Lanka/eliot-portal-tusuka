@@ -195,7 +195,7 @@ export const TableCompo: React.FC<PDFReportProps> = ({
           </Text>
           <Text style={styles.headerInfo}>
             Report Date: {selectedDate} | Line: {obbSheetData || "Unknown"} |
-            Generated: {new Date().toLocaleString()}
+            Generated: {new Date().toLocaleString()} | UNIT 2
           </Text>
         </View>
 
@@ -677,9 +677,7 @@ export const TableCompo: React.FC<PDFReportProps> = ({
           <Text style={styles.footerText}>
             • Lost Hours Break Down : A - Offstand time recorded in the Database
           </Text>
-          <Text style={styles.footerText}>
-            • Total Line Day Performance: {lineEndData ?? "0"}
-          </Text>
+         
           <Text style={styles.footerText}>
             • Report generated on {new Date().toLocaleString()}
           </Text>
