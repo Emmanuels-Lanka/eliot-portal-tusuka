@@ -1,6 +1,5 @@
 import { db } from '@/lib/db';
-import AnalyticsChart from './_components/analytics';
-
+import AnalyticsChart from './components/analytics-chart';
 
 
   

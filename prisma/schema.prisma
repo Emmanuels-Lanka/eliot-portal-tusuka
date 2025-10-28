@@ -9,18 +9,18 @@ datasource db {
 }
 
 model User {
-  id         String               @id @default(uuid())
-  name       String
-  email      String               @unique
-  phone      String
-  role       String
-  password   String
-  employeeId String
-  createdAt  DateTime             @default(now())
-  updatedAt  DateTime             @updatedAt
-  defectLogs DeviceDefectLog[]
-  tslRecords TrafficLightSystem[]
+  id               String               @id @default(uuid())
+  name             String
+  email            String               @unique
+  phone            String
+  role             String
+  password         String
+  employeeId       String
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  defectLogs       DeviceDefectLog[]
   factoryIssueLogs FactoryIssueLog[]
+  tslRecords       TrafficLightSystem[]
 }
 
 model Staff {
@@ -505,15 +505,15 @@ model DeviceDefectLog {
   status                  DefectStatus
   fixedAt                 DateTime?
   isReplaced              Boolean           @default(false)
-  physicalDamage          Boolean           @default(false)
-  rootCause               String?
-  remarks                 String?
-  replacedPart            String?
-  reportedTo              String?
   deviceId                String
   attendedByUserId        String
   predefinedDefectId      String?
   replacementDeviceId     String?           @unique
+  physicalDamage          Boolean           @default(false)
+  remarks                 String?
+  replacedPart            String?
+  reportedTo              String?
+  rootCause               String?
   attendedBy              User              @relation(fields: [attendedByUserId], references: [id])
   device                  EliotDevice       @relation("DeviceDefects", fields: [deviceId], references: [id])
   predefinedDefect        PredefinedDefect? @relation(fields: [predefinedDefectId], references: [id])
@@ -545,6 +545,18 @@ model PredefinedDefect {
   DeviceDefectLog DeviceDefectLog[]
 }
 
+model FactoryIssueLog {
+  id           String             @id @default(uuid())
+  description  String
+  status       FactoryIssueStatus @default(REPORTED)
+  reportedById String
+  createdAt    DateTime           @default(now())
+  resolvedAt   DateTime?
+  reportedBy   User               @relation(fields: [reportedById], references: [id])
+
+  @@index([reportedById])
+}
+
 enum DefectStatus {
   REPORTED
   IN_PROGRESS
@@ -556,16 +568,4 @@ enum DefectStatus {
 enum FactoryIssueStatus {
   REPORTED
   RESOLVED
-}
-
-model FactoryIssueLog {
-  id           String             @id @default(uuid())
-  description  String
-  status       FactoryIssueStatus @default(REPORTED)
-  reportedById String
-  createdAt    DateTime           @default(now())
-  resolvedAt   DateTime?
-  reportedBy   User               @relation(fields: [reportedById], references: [id])
-
-  @@index([reportedById])
 }

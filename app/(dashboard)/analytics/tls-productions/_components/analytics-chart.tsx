@@ -8,7 +8,7 @@ import { TrafficLightSystem } from "@prisma/client";
 import HeatmapChart from "@/components/dashboard/charts/heatmap-chart";
 import SelectObbSheetAndDate from "@/components/dashboard/common/select-obbsheet-and-date";
 import { useToast } from "@/components/ui/use-toast";
-import ChartContainerCompo from "../../daily-achivement/components/chart-container";
+import ChartContainerCompo from "../../daily-achivement3/components/chart-container";
 
 interface AnalyticsChartProps {
     obbSheets: {

@@ -1,5 +1,5 @@
 "use server";
-import { ProductionDataType } from "../../daily-achivement/components/analytics-chart";
+import { ProductionDataType } from "../../daily-achivement3/components/analytics-chart";
 import { poolForPortal } from "@/lib/postgres";
 
 
