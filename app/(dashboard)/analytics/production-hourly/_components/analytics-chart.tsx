@@ -81,102 +81,142 @@ const AnalyticsChart = ({
     const [obbSheet, setObbSheet] = useState<ObbSheet | null>(null);
     const [isNew,setIsNew] = useState<boolean>(true)
 
-    function processProductionData(productionData: ProductionDataForChartTypes[],state:boolean): OperationEfficiencyOutputTypes {
-        const hourGroups = ["7:00 AM - 8:00 AM", "8:00 AM - 9:00 AM", "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM", "11:00 AM - 12:00 PM", "12:00 PM - 1:00 PM", "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM", "3:00 PM - 4:00 PM", "4:00 PM - 5:00 PM", "5:00 PM - 6:00 PM", "6:00 PM - 7:00 PM","7:00 PM - 8:00 PM"];
+    function processProductionData(
+    productionData: ProductionDataForChartTypes[], 
+    state: boolean
+    ): OperationEfficiencyOutputTypes {
+    const hourGroups = [
+        "7:00 AM - 8:00 AM", "8:00 AM - 9:00 AM", "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM", "11:00 AM - 12:00 PM", "12:00 PM - 1:00 PM", 
+        "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM", "3:00 PM - 4:00 PM", "4:00 PM - 5:00 PM", "5:00 PM - 6:00 PM", "6:00 PM - 7:00 PM", "7:00 PM - 8:00 PM"
+    ];
 
-        // const getHourGroup = (timestamp: string): string => {
-        //     const hour = new Date(timestamp).getHours();
-        //     return hourGroups[Math.max(0, Math.min(11, hour - 7))];
-        // };
-        
-        const getHourGroup = (timestamp: string): string => {
-            const date = new Date(timestamp);
-    const hour = date.getHours();
-    const minutes = date.getMinutes();
-    if (minutes >= 5) {
-        return hourGroups[Math.max(0, Math.min(11, hour - 7))];
-    } else {
-        // If minutes are less than 5, group it to the previous hour group
-        return hourGroups[Math.max(0, Math.min(11, hour - 8))];
-    }
-            // const hour = new Date(timestamp).getHours();
-            // return hourGroups[Math.max(0, Math.min(11, hour - 7))];
-        };
+    const getHourGroup = (timestamp: string): string => {
+        const date = new Date(timestamp);
+        const hour = date.getHours();
+        const minutes = date.getMinutes();
+        if (minutes >= 5) {
+            return hourGroups[Math.max(0, Math.min(12, hour - 7))];
+        } else {
+            return hourGroups[Math.max(0, Math.min(12, hour - 8))];
+        }
+    };
 
-      
-        const operationsMap: { [key: string]: ProductionDataForChartTypes[] } = {};
-        productionData.forEach(data => {
-            if (!operationsMap[data.obbOperationId]) {
-                operationsMap[data.obbOperationId] = [];
-            }
-            operationsMap[data.obbOperationId].push(data);
-        });
+    const operationsMap: { [key: string]: ProductionDataForChartTypes[] } = {};
+    productionData.forEach(data => {
+        if (!operationsMap[data.obbOperationId]) {
+            operationsMap[data.obbOperationId] = [];
+        }
+        operationsMap[data.obbOperationId].push(data);
+    });
 
-        console.log("seco",operationsMap)
+    const operations = Object.values(operationsMap).map(group => ({
+        obbOperation: group[0].obbOperation,
+        data: group
+    })).sort((a, b) => a.obbOperation.seqNo - b.obbOperation.seqNo);
 
-        const operations = Object.values(operationsMap).map(group => ({
-            obbOperation: group[0].obbOperation,
-            data: group
-        })).sort((a, b) => a.obbOperation.seqNo - b.obbOperation.seqNo);
+    const categories = operations.map(op => 
+        `${op.obbOperation.operation.name} - (${op.obbOperation?.sewingMachine?.machineId || 'Unknown'}) - ${op.obbOperation.seqNo}`
+    );
+    const machines = operations.map(op => op.obbOperation?.sewingMachine?.machineId || 'Unknown');
+    const eliot = operations.map(op => op.data[0]?.eliotSerialNumber || 'Unknown');
 
-        console.log("op",operations)
+    const resultData = hourGroups.map(hourGroup => ({
+        hourGroup,
+        operation: operations.map(op => {
+            const filteredData = op.data.filter(data => getHourGroup(data.timestamp) === hourGroup);
 
-        // const categories = operations.map(op => `${op.obbOperation.operation.name}-${op.obbOperation.seqNo}`);
-        const categories = operations.map(op => `${op.obbOperation.operation.name} - ( ${op.obbOperation?.sewingMachine?.machineId || 'Unknown Machine ID'}) - ${op.obbOperation.seqNo}`);
-        const machines = operations.map(op => ` ${op.obbOperation?.sewingMachine?.machineId || 'Unknown Machine ID'}`);
-        const eliot = operations.map(op => ` ${op.data[0].eliotSerialNumber}`);
-        const resultData = hourGroups.map(hourGroup => ({
-            hourGroup,
-            operation: operations.map(op => {
-                const filteredData = op.data.filter(data => getHourGroup(data.timestamp) === hourGroup);
+            let prod: number;
 
-                let prod :number;
-                if(!state){
-                     prod = filteredData.reduce((sum, curr) => sum + curr.productionCount, 0)
-                }
-                else{
-                    if (filteredData.length === 0) return { name: op.obbOperation.operation.name, efficiency: null };
-                    const  lastProduction = filteredData[0].totalPcs;
-                    const currentHourIndex = hourGroups.indexOf(hourGroup);
-                    let previousHourData: number = 0;
-                   
-                if (currentHourIndex > 0) {
-                    // Iterate backward to find the nearest previous hour with data
-                    for (let i = currentHourIndex - 1; i >= 0; i--) {
-                      const previousHourGroup = hourGroups[i];
-                  
-                      // Filter data for the previous valid hour group
-                      const filteredPreviousData = op.data.filter(
-                        (data) => getHourGroup(data.timestamp) === previousHourGroup
-                      );
-                  
-                      if (filteredPreviousData.length > 0) {
-                        previousHourData = filteredPreviousData[0].totalPcs; 
-                        break; // Stop looping once a valid previous hour is found
-                      }
-                    }
-                  }
-                      // const lastHourProd = 
-                      prod = lastProduction - previousHourData;
+            if (!state) {
+                // Mode A: Direct production count
+                prod = filteredData.reduce((sum, curr) => sum + curr.productionCount, 0);
+            } else {
+                // Mode B: Cumulative difference with reset detection
+                if (filteredData.length === 0) {
+                    return { 
+                        name: `${op.obbOperation.seqNo}-${op.obbOperation.operation.name}`, 
+                        efficiency: null 
+                    };
                 }
 
+                // Sort by timestamp ascending
+                const sortedData = [...filteredData].sort((a, b) => 
+                    new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+                );
 
-
-                const totalProduction = prod;
-                const earnmins = op.obbOperation.smv * totalProduction
-                const efficiency = filteredData.length > 0 ? (totalProduction === 0 ? 0 : (earnmins / 60) * 100) : null;
+                const currentHourIndex = hourGroups.indexOf(hourGroup);
                 
-                return { name: `${op.obbOperation.seqNo}-${op.obbOperation.operation.name}`, efficiency: totalProduction !== null ? parseFloat(totalProduction.toFixed(1)) : null };
-            })
-        })); 
+                // Find previous hour's LAST totalPcs value
+                let previousHourLastValue: number = 0;
+                
+                if (currentHourIndex > 0) {
+                    for (let i = currentHourIndex - 1; i >= 0; i--) {
+                        const previousHourGroup = hourGroups[i];
+                        const prevHourData = op.data.filter(
+                            (data) => getHourGroup(data.timestamp) === previousHourGroup
+                        );
 
-        return {
-            data: resultData,
-            categories,
-            machines,
-            eliot
-        };
-    }
+                        if (prevHourData.length > 0) {
+                            // Get LAST record from previous hour
+                            const sortedPrevData = [...prevHourData].sort((a, b) => 
+                                new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+                            );
+                            previousHourLastValue = sortedPrevData[sortedPrevData.length - 1].totalPcs;
+                            break;
+                        }
+                    }
+                }
+
+                // **CRITICAL FIX: Process all records and detect resets**
+                let totalProduction = 0;
+                let lastValue = previousHourLastValue;
+
+                for (let i = 0; i < sortedData.length; i++) {
+                    const currentRecord = sortedData[i];
+                    const currentTotal = currentRecord.totalPcs;
+
+                    // **Reset Detection: If current < last, device was reset**
+                    if (currentTotal < lastValue) {
+                        // This is a reset!
+                        // 1. Add production BEFORE reset (if this isn't the first record)
+                        // 2. Start counting from the reset value
+                        
+                        console.log(`🔴 Reset detected at ${currentRecord.timestamp}`);
+                        console.log(`   Previous value: ${lastValue}, Reset to: ${currentTotal}`);
+                        
+                        // The current value is production after reset
+                        // No need to calculate difference, just add current value
+                        totalProduction += currentTotal;
+                        
+                    } else {
+                        // Normal increment
+                        const increment = currentTotal - lastValue;
+                        totalProduction += increment;
+                    }
+
+                    // Update last value for next iteration
+                    lastValue = currentTotal;
+                }
+
+                prod = totalProduction;
+            }
+
+            const totalProduction = prod;
+            
+            return { 
+                name: `${op.obbOperation.seqNo}-${op.obbOperation.operation.name}`, 
+                efficiency: totalProduction >= 0 ? parseFloat(totalProduction.toFixed(1)) : 0
+            };
+        })
+    }));
+
+    return {
+        data: resultData,
+        categories,
+        machines,
+        eliot
+    };
+}
     useEffect(()=>{
         console.log(isNew)
     },[isNew])
