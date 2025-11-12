@@ -23,8 +23,12 @@ const OperatorEfficiency60 = async () => {
 
     return (
         <div className=''>
+          <AnalyticsChart
+            obbSheets={obbSheets}
+            title='Operator Efficiency Heatmap for 60min'
+          />
         
-        <Tabs defaultValue="1" className="w-full">
+        {/* <Tabs defaultValue="1" className="w-full">
         <div className='flex flex-col justify-center mt-4 items-center'>
           <TabsList>
             <TabsTrigger value="1">Live Efficiency</TabsTrigger>
@@ -47,7 +51,7 @@ const OperatorEfficiency60 = async () => {
             />
           </TabsContent>
          
-        </Tabs>
+        </Tabs> */}
         
       </div>
     )
