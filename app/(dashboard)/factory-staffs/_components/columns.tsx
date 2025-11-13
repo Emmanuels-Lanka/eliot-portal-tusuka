@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowUpDown, Loader2, Trash2, Edit } from "lucide-react";
+import { ArrowUpDown, Loader2, Trash2, Edit, AlertCircle } from "lucide-react";
 import axios from "axios";
 import { Staff } from "@prisma/client"
 import { useRouter } from "next/navigation";
@@ -13,6 +13,15 @@ import ConfirmModel from "@/components/model/confirm-model";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 const ActionCell = ({ row }: { row: any }) => {
     const { id } = row.original;
@@ -21,6 +30,8 @@ const ActionCell = ({ row }: { row: any }) => {
     const router = useRouter();
 
     const [isLoading, setIsLoading] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
+    const [obbSheetNames, setObbSheetNames] = useState("");
 
     const onDelete = async (staffId: string) => {
         try {
@@ -33,60 +44,82 @@ const ActionCell = ({ row }: { row: any }) => {
             });
         } catch (error: any) {
             console.error("ERROR", error);
-            toast({
-                title: error.response.data || "Something went wrong! Try again",
-                variant: "error"
-            });
+            
+            // Handle specific error for staff assigned to OBB sheets
+            if (error.response?.status === 409 && error.response?.data?.assignedSheets) {
+                const { assignedSheets } = error.response.data;
+                const sheetNames = assignedSheets.map((sheet: any) => sheet.name).join(", ");
+                setObbSheetNames(sheetNames);
+                setShowAlert(true);
+            } else {
+                toast({
+                    title: error.response?.data?.message || error.response?.data || "Something went wrong! Try again",
+                    variant: "error"
+                });
+            }
         } finally {
             setIsLoading(false);
         }
     }
 
     return (
-        <div className="flex gap-2">
-            <Link href={`/factory-staffs/${id}`}>
-                <Button
-                    size='sm'
-                    disabled={isLoading}
-                    variant='outline'
-                >
-                    <Edit className="w-4 h-4" />
-                </Button>
-            </Link>
-            <ConfirmModel onConfirm={() => onDelete(id)}>
-                <Button
-                    size='sm'
-                    disabled={isLoading}
-                    variant='outline'
-                >
-                    <Loader2 className={cn("animate-spin w-4 h-4 hidden", isLoading && "flex")} />
-                    <Trash2 className={cn("w-4 h-4 text-destructive", isLoading && 'hidden')} />
-                </Button>
-            </ConfirmModel>
-        </div>
+        <>
+            <div className="flex gap-2">
+                <Link href={`/factory-staffs/${id}`}>
+                    <Button
+                        size='sm'
+                        disabled={isLoading}
+                        variant='outline'
+                    >
+                        <Edit className="w-4 h-4" />
+                    </Button>
+                </Link>
+                <ConfirmModel onConfirm={() => onDelete(id)}>
+                    <Button
+                        size='sm'
+                        disabled={isLoading}
+                        variant='outline'
+                    >
+                        <Loader2 className={cn("animate-spin w-4 h-4 hidden", isLoading && "flex")} />
+                        <Trash2 className={cn("w-4 h-4 text-destructive", isLoading && 'hidden')} />
+                    </Button>
+                </ConfirmModel>
+            </div>
+
+            <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+                <AlertDialogContent className="max-w-md">
+                    <AlertDialogHeader>
+                        <div className="flex items-center gap-2">
+                            <AlertCircle className="h-5 w-5 text-destructive" />
+                            <AlertDialogTitle className="text-destructive">
+                                Cannot Delete Staff Member
+                            </AlertDialogTitle>
+                        </div>
+                        <AlertDialogDescription className="pt-4 text-base">
+                            This staff member is currently assigned to the following OBB sheet(s):
+                            <div className="mt-3 p-3 bg-muted rounded-md border border-border">
+                                <p className="font-semibold text-foreground">{obbSheetNames}</p>
+                            </div>
+                            <p className="mt-3">
+                                Please unassign them before deletion.
+                            </p>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogAction onClick={() => setShowAlert(false)}>
+                            Understood
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     )
 }
 
 export const columns: ColumnDef<Staff>[] = [
-     { id: "rowNumber",
-  header: "",
-  cell: ({ row, table }) => {
-    const pageIndex = table.getState().pagination.pageIndex;
-    const pageSize = table.getState().pagination.pageSize;
-    return pageIndex * pageSize + row.index + 1;
-  },
-},
-    {
-        accessorKey: "employeeId",
-        header: "Emp ID",
-    },
     {
         accessorKey: "name",
         header: "Name",
-    },
-    {
-        accessorKey: "rfid",
-        header: "RFID",
     },
     {
         accessorKey: "email",
@@ -132,7 +165,7 @@ export const columns: ColumnDef<Staff>[] = [
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                     className="-ml-5"
                 >
-                    Degination
+                    Designation
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
@@ -144,7 +177,10 @@ export const columns: ColumnDef<Staff>[] = [
             )
         }
     },
-   
+    {
+        accessorKey: "employeeId",
+        header: "Emp ID",
+    },
     // {
     //     accessorKey: "rfid",
     //     header: "RFID",
