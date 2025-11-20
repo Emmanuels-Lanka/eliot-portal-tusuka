@@ -20,11 +20,26 @@ export async function PATCH(
             return new NextResponse("OBB operation does not exist!", { status: 409 })
         }
 
+                const activeOperation = existingOperation.sewingMachine?.activeObbOperationId
+
         if (existingOperation.sewingMachine) {      // 1: A machine assigned to this Obb operation
             if (existingOperation.sewingMachine?.activeObbOperationId !== null) {       // 3: The machine is in active with a obb operation
                 if (existingOperation.sewingMachine?.activeObbOperationId !== params.obbOperationId) {      // 5: The machine is active with different obb operation
-                    if (existingOperation.sewingMachine?.activeObbOperationId !== "combined") {
-                        return new NextResponse("Machine already in active, Cannot activate the same machine for this operation!", { status: 409 })
+                     if (existingOperation.sewingMachine?.activeObbOperationId !== "combined") {
+
+                         const activeObb = await db.obbOperation.findUnique({
+                           where: {
+                             id: activeOperation as string,
+                           },
+                           select: {
+                             obbSheet: {
+                               select: {
+                                 name: true,
+                               },
+                             },
+                           },
+                         });
+                        return new NextResponse(`Machine already in active in ${activeObb?.obbSheet.name}, Cannot activate the same machine for this operation!`, { status: 409 })
                     }
                 }
             } else {        // 4: The machine is not in active with any obb operations
