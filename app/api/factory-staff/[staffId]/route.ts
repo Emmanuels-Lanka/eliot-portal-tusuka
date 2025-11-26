@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-
 import { db } from "@/lib/db";
 
 export async function DELETE(
@@ -15,6 +14,41 @@ export async function DELETE(
 
         if (!existingStaffByEmpId) {
             return new NextResponse("Staff is not registered yet!", { status: 409 })
+        }
+
+        // Check all possible OBB sheet assignments
+        const assignedObbSheets = await db.obbSheet.findMany({
+            where: {
+                OR: [
+                    { indEngineerId: params.staffId },
+                    { mechanicId: params.staffId },
+                    { qualityInsId: params.staffId },
+                    { accInputManId: params.staffId },
+                    { fabInputManId: params.staffId },
+                    { supervisorAssemblyId: params.staffId },
+                    { supervisorBackId: params.staffId },
+                    { supervisorFrontId: params.staffId },
+                    { supervisorLineEndId: params.staffId },
+                    { lineChiefId: params.staffId }
+                ]
+            },
+            select: {
+                id: true,
+                name: true
+            }
+        });
+
+        // If staff is assigned to any OBB sheets, prevent deletion
+        if (assignedObbSheets.length > 0) {
+            const obbSheetNames = assignedObbSheets.map(sheet => sheet.name).join(", ");
+            return NextResponse.json(
+                {
+                    error: "Cannot delete staff member",
+                    message: `This staff member is currently assigned to the following OBB sheet(s): ${obbSheetNames}. Please unassign them before deletion.`,
+                    assignedSheets: assignedObbSheets
+                },
+                { status: 409 }
+            );
         }
 
         const deletedStaff = await db.staff.delete({
