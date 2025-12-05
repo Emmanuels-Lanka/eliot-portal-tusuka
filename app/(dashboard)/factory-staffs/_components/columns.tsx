@@ -181,10 +181,10 @@ export const columns: ColumnDef<Staff>[] = [
         accessorKey: "employeeId",
         header: "Emp ID",
     },
-    // {
-    //     accessorKey: "rfid",
-    //     header: "RFID",
-    // },
+    {
+        accessorKey: "rfid",
+        header: "RFID",
+    },
     {
         id: "actions",
         header: "Action",
