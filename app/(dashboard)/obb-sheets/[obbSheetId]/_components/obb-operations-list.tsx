@@ -8,13 +8,15 @@ interface ObbOperationsListProps {
     machines: SewingMachine[] | null;
     obbOperations: ObbOperationData[] | undefined;
     obbSheetId: string;
+    obbSheetLineTarget?: number | null;
 }
 
 const ObbOperationsList = ({
     operations,
     machines,
     obbOperations,
-    obbSheetId
+    obbSheetId,
+    obbSheetLineTarget
 }: ObbOperationsListProps) => {
     return (
         <div className="mx-auto max-w-7xl border px-6 pt-4 pb-6 rounded-lg bg-slate-100">
@@ -24,6 +26,7 @@ const ObbOperationsList = ({
                     obbSheetId={obbSheetId}
                     operations={operations}
                     machines={machines}
+                    obbSheetLineTarget={obbSheetLineTarget || null}
                 />
             </div>
 

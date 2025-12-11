@@ -9,18 +9,19 @@ datasource db {
 }
 
 model User {
-  id               String               @id @default(uuid())
-  name             String
-  email            String               @unique
-  phone            String
-  role             String
-  password         String
-  employeeId       String
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
-  defectLogs       DeviceDefectLog[]
-  factoryIssueLogs FactoryIssueLog[]
-  tslRecords       TrafficLightSystem[]
+  id                     String                   @id @default(uuid())
+  name                   String
+  email                  String                   @unique
+  phone                  String
+  role                   String
+  password               String
+  employeeId             String
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  defectLogs             DeviceDefectLog[]
+  factoryIssueLogs       FactoryIssueLog[]
+  SewingMachineDefectLog SewingMachineDefectLog[]
+  tslRecords             TrafficLightSystem[]
 }
 
 model Staff {
@@ -120,27 +121,29 @@ model EliotDevice {
 }
 
 model SewingMachine {
-  id                   String               @id @default(uuid())
-  brandName            String
-  machineType          String
-  machineId            String               @unique
-  ownership            String
-  isAssigned           Boolean              @default(false)
-  eliotDeviceId        String?              @unique
-  unitId               String
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
-  serialNumber         String               @unique
-  modelNumber          String?
-  activeObbOperationId String?
-  isCombinedOperation  Boolean              @default(false)
-  alertLogs            AlertLog[]
-  obbOperations        ObbOperation[]
-  roamingQC            RoamingQC[]
-  eliotDevice          EliotDevice?         @relation(fields: [eliotDeviceId], references: [id], onDelete: Cascade)
-  unit                 Unit                 @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  tslRecords           TrafficLightSystem[]
-  productionLines      ProductionLine[]     @relation("ProductionLineToSewingMachine")
+  id                                                                                String                   @id @default(uuid())
+  brandName                                                                         String
+  machineType                                                                       String
+  machineId                                                                         String                   @unique
+  ownership                                                                         String
+  isAssigned                                                                        Boolean                  @default(false)
+  eliotDeviceId                                                                     String?                  @unique
+  unitId                                                                            String
+  createdAt                                                                         DateTime                 @default(now())
+  updatedAt                                                                         DateTime                 @updatedAt
+  serialNumber                                                                      String                   @unique
+  modelNumber                                                                       String?
+  activeObbOperationId                                                              String?
+  isCombinedOperation                                                               Boolean                  @default(false)
+  alertLogs                                                                         AlertLog[]
+  obbOperations                                                                     ObbOperation[]
+  roamingQC                                                                         RoamingQC[]
+  eliotDevice                                                                       EliotDevice?             @relation(fields: [eliotDeviceId], references: [id], onDelete: Cascade)
+  unit                                                                              Unit                     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  SewingMachineDefectLog_SewingMachineDefectLog_machineIdToSewingMachine            SewingMachineDefectLog[] @relation("SewingMachineDefectLog_machineIdToSewingMachine")
+  SewingMachineDefectLog_SewingMachineDefectLog_replacementMachineIdToSewingMachine SewingMachineDefectLog?  @relation("SewingMachineDefectLog_replacementMachineIdToSewingMachine")
+  tslRecords                                                                        TrafficLightSystem[]
+  productionLines                                                                   ProductionLine[]         @relation("ProductionLineToSewingMachine")
 
   @@index([eliotDeviceId, unitId])
 }
@@ -199,6 +202,7 @@ model ObbSheet {
   thresholdStatus         Boolean?
   intervalStartTime       String                    @default("13:00:00")
   intervalStopTime        String                    @default("14:00:00")
+  lineTarget              Int?
   lineEfficiencyResources LineEfficiencyResources[]
   obbOperations           ObbOperation[]
   accInputMan             Staff?                    @relation("AccInputMan", fields: [accInputManId], references: [id])
@@ -243,6 +247,10 @@ model ObbOperation {
   sewingMachineId          String?
   part                     String?
   isCombined               Boolean                @default(false)
+  lineTarget               Int?
+  lastCalculatedTarget     Int?
+  lastUpdateTime           String?
+  targetColor              String?
   obbSheet                 ObbSheet               @relation(fields: [obbSheetId], references: [id], onDelete: Cascade)
   operation                Operation              @relation(fields: [operationId], references: [id], onDelete: Cascade)
   sewingMachine            SewingMachine?         @relation(fields: [sewingMachineId], references: [id])
@@ -569,6 +577,46 @@ model FactoryIssueLog {
   @@index([reportedById])
 }
 
+model MachinePredefinedDefect {
+  id                     String                   @id
+  defectCode             String                   @unique
+  description            String
+  SewingMachineDefectLog SewingMachineDefectLog[]
+}
+
+model SewingMachineDefectLog {
+  id                                                                       String                   @id
+  reportedAt                                                               DateTime                 @default(now())
+  attendedAt                                                               DateTime
+  customDefectDescription                                                  String?
+  status                                                                   MachineDefectStatus      @default(REPORTED)
+  fixedAt                                                                  DateTime?
+  isReplaced                                                               Boolean                  @default(false)
+  physicalDamage                                                           Boolean                  @default(false)
+  rootCause                                                                String?
+  remarks                                                                  String?
+  replacedPart                                                             String?
+  reportedTo                                                               String?
+  machineId                                                                String
+  attendedByUserId                                                         String
+  predefinedDefectId                                                       String?
+  lineNumber                                                               String?
+  modelNumber                                                              String?
+  versionNumber                                                            String?
+  operatorId                                                               String?
+  operatorSmv                                                              String?
+  operationName                                                            String?
+  deviceStatus                                                             String?
+  unitName                                                                 String?
+  SewingMachine                                                            String?
+  replacementMachineId                                                     String?                  @unique
+  mediaUrls                                                                String[]                 @default([])
+  User                                                                     User                     @relation(fields: [attendedByUserId], references: [id])
+  SewingMachine_SewingMachineDefectLog_machineIdToSewingMachine            SewingMachine            @relation("SewingMachineDefectLog_machineIdToSewingMachine", fields: [machineId], references: [id])
+  MachinePredefinedDefect                                                  MachinePredefinedDefect? @relation(fields: [predefinedDefectId], references: [id])
+  SewingMachine_SewingMachineDefectLog_replacementMachineIdToSewingMachine SewingMachine?           @relation("SewingMachineDefectLog_replacementMachineIdToSewingMachine", fields: [replacementMachineId], references: [id])
+}
+
 enum DefectStatus {
   REPORTED
   IN_PROGRESS
@@ -580,4 +628,13 @@ enum DefectStatus {
 enum FactoryIssueStatus {
   REPORTED
   RESOLVED
+}
+
+enum MachineDefectStatus {
+  REPORTED
+  IN_PROGRESS
+  FIXED
+  NEEDS_PARTS
+  OUT_OF_SERVICE
+  CANCELLED
 }

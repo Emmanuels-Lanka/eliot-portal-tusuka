@@ -387,6 +387,13 @@ export function DataTable<TData, TValue>({
             accessorKey: "part",
             header: "Part",
         },
+        {
+        accessorKey: "lineTarget",
+        header: "Line Target",
+        cell: ({ row }) => {
+            return row.original.lineTarget ?? "-";
+        },
+        },
         // {
         //     accessorKey: "spi",
         //     header: "SPI",

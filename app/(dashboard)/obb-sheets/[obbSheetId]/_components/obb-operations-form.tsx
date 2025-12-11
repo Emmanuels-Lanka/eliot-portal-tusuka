@@ -10,6 +10,7 @@ import {
     Check,
     ChevronsUpDown,
     Edit,
+    Info,
     Loader2,
     Plus,
     PlusCircle,
@@ -68,6 +69,7 @@ interface ObbOperationsFormProps {
     obbSheetId: string;
     operations: Operation[] | null;
     machines: SewingMachine[] | null;
+    obbSheetLineTarget?: number | null;
 }
 
 const formSchema = z.object({
@@ -82,6 +84,7 @@ const formSchema = z.object({
     obbSheetId: z.string(),
     part: z.string(),
     isCombined: z.boolean().default(false),
+    lineTarget: z.number().optional().nullable(),
 });
 
 const ObbOperationsForm = ({
@@ -89,6 +92,7 @@ const ObbOperationsForm = ({
     obbSheetId,
     operations,
     machines,
+    obbSheetLineTarget,
 }: ObbOperationsFormProps) => {
     const { toast } = useToast();
     const router = useRouter();
@@ -112,10 +116,12 @@ const ObbOperationsForm = ({
             obbSheetId: obbSheetId,
             part: defaultData?.part || "",
             isCombined: defaultData?.isCombined || false,
+            lineTarget: defaultData?.lineTarget || obbSheetLineTarget || null,
         },
     });
 
     const sewingMachineId = useWatch({ control: form.control, name: "sewingMachineId" });
+    const lineTargetValue = useWatch({ control: form.control, name: "lineTarget",});
 
     const {
         register,
@@ -202,6 +208,7 @@ const ObbOperationsForm = ({
             totalStitches: defaultData?.totalStitches || 0,
             obbSheetId: obbSheetId,
             part: defaultData?.part || "",
+            lineTarget: defaultData?.lineTarget || obbSheetLineTarget || null,
         });
     };
 
@@ -242,6 +249,21 @@ const ObbOperationsForm = ({
                         onSubmit={handleSubmit(onSubmit)}
                         className="w-full space-y-6 mt-4"
                     >
+                        {obbSheetLineTarget && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+                               <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                        <p className="font-medium text-blue-900">
+                            OBB Sheet Line Target:{" "}
+                            <span className="font-bold">{obbSheetLineTarget}</span>{" "}
+                            pieces/day
+                        </p>
+                        <p className="text-blue-700 text-xs mt-1">
+                            This is the default line target. You can customize it for this operation below.
+                        </p>
+                        </div>
+                    </div>
+                )}
                         <div className="w-full flex gap-x-4 items-end">
                             <FormField
                                 control={form.control}
@@ -637,6 +659,61 @@ const ObbOperationsForm = ({
                             </div> */}
                         </div>
                         {/* <Input {...register("operationId")} placeholder="Operation ID" /> */}
+                        
+                        <div>
+                            {/* ✅ Line Target Field - Editable for each operation */}
+                            <FormField
+                              control={form.control}
+                              name="lineTarget"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="flex items-center gap-2">
+                                    Line Target for This Operation
+                                    <div className="relative group">
+                                      <Info className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                                        <div className="font-medium mb-1">
+                                                    Operation Line Target
+                                        </div>
+                                        <div className="leading-relaxed">
+                                                    • Set a custom line target for this specific operation
+                                                    <br />• Defaults to OBB sheet line target:{" "}
+                                                    {obbSheetLineTarget || "N/A"}
+                                                    <br />
+                                        </div>
+                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                      </div>
+                                    </div>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      className="hide-steps-number-input"
+                                      disabled={isSubmitting}
+                                      placeholder={`Default: ${
+                                        obbSheetLineTarget || "Not set"
+                                      }`}
+                                      {...field}
+                                      value={field.value ?? ""}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === "" || Number(value) >= 0) {
+                                                    field.onChange(
+                                                      value === "" ? null : parseInt(value)
+                                                    );
+                                        }
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormDescription className="text-xs">
+                                    Leave empty to use OBB sheet default (
+                                    {obbSheetLineTarget || "N/A"})
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                        </div>
 
                         <div>
                             <FormField

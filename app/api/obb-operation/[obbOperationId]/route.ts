@@ -87,6 +87,7 @@ export async function PUT(
             obbSheetId,
             part,
             isCombined,
+            lineTarget,
         } = await req.json();
 
         const existingObbOperation = await db.obbOperation.findUnique({
@@ -111,6 +112,7 @@ export async function PUT(
                 supervisorBackId: true,
                 supervisorAssemblyId: true,
                 supervisorLineEndId: true,
+                lineTarget: true,
             },
         });
 
@@ -211,6 +213,7 @@ export async function PUT(
                 sewingMachineId: sewingMachineId || null,
                 part,
                 isCombined: isCombined as boolean,
+                lineTarget: lineTarget,
             },
         });
 

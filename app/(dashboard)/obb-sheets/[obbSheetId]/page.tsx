@@ -87,6 +87,7 @@ const ObbSheetId = async ({ params }: { params: { obbSheetId: string } }) => {
             },
             supervisorFront: true,
             supervisorBack: true,
+            lineTarget: true,
         },
     });
 
@@ -131,6 +132,7 @@ const ObbSheetId = async ({ params }: { params: { obbSheetId: string } }) => {
                 machines={machines}
                 obbOperations={obbOperations?.obbOperations}
                 obbSheetId={params.obbSheetId}
+                obbSheetLineTarget={sheets?.lineTarget}
             />
             <div className="space-y-4">
                 <div className="flex justify-between items-end gap-4">

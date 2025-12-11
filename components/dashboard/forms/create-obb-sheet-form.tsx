@@ -4,7 +4,7 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FieldValues, useForm } from "react-hook-form";
 import { ObbSheet, ProductionLine, Staff } from "@prisma/client";
-import { ArrowLeft, Loader2, Zap } from "lucide-react";
+import { ArrowLeft, Info, Loader2, Zap } from "lucide-react";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -123,6 +123,7 @@ const formSchema = z.object({
   supResponseTime: z.number().optional().nullable(),
   mecResponseTime: z.number().optional().nullable(),
   qiResponseTime: z.number().optional().nullable(),
+  lineTarget: z.number().optional().nullable(),
 });
 
 const CreateObbSheetForm = ({
@@ -197,6 +198,7 @@ const CreateObbSheetForm = ({
       supResponseTime: initialData?.supResponseTime || 10,
       mecResponseTime: initialData?.mecResponseTime || 15,
       qiResponseTime: initialData?.qiResponseTime || 12,
+      lineTarget: initialData?.lineTarget || 0,
     },
   });
 
@@ -311,7 +313,7 @@ const CreateObbSheetForm = ({
     };
 
     fetchOBBOperations();
-  }, []);
+  }, [obbSheetId]);
 
   const calculateWorkingHours = (startTime: string, stopTime: string) => {
     const [startHours, startMinutes] = startTime.split(":").map(Number);
@@ -1266,6 +1268,51 @@ const CreateObbSheetForm = ({
                                     </FormItem>
                                 )}
                             /> */}
+                            
+                            <FormField
+                control={form.control}
+                name="lineTarget"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      Line Target (Daily)
+                      <div className="relative group">
+                        <Info className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                          <div className="text-xs font-medium mb-1">
+                            Line Target Information:
+                          </div>
+                          <div className="text-xs leading-relaxed">
+                            • Daily production target for this line <br />
+                            • Example: 580 pieces per day
+                          </div>
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                        </div>
+                      </div>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        className="hide-steps-number-input"
+                        disabled={isSubmitting}
+                        placeholder="Enter daily line target"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "" || Number(value) >= 0) {
+                            field.onChange(
+                              value === "" ? null : parseInt(value)
+                            );
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
             </div>
           </div>
           {mode && mode === "create" ? (

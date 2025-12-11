@@ -18,7 +18,8 @@ export async function POST(
             totalStitches,
             obbSheetId,
             part,
-            isCombined
+            isCombined,
+            lineTarget
         } = await req.json();
 
         let id = generateUniqueId();
@@ -32,7 +33,8 @@ export async function POST(
                 supervisorFrontId: true,
                 supervisorBackId: true,
                 supervisorAssemblyId: true,
-                supervisorLineEndId: true
+                supervisorLineEndId: true,
+                lineTarget: true,
             }
         });
 
@@ -102,6 +104,7 @@ export async function POST(
                 sewingMachineId: sewingMachineId || null,
                 part,
                 isCombined: isCombined as boolean,
+                lineTarget: lineTarget,
             }
         });
 
