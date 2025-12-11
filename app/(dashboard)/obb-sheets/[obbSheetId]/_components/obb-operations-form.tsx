@@ -500,6 +500,9 @@ const ObbOperationsForm = ({
                                                     <SelectItem value="line-end">
                                                         LINE END
                                                     </SelectItem>
+                                                    <SelectItem value="make">
+                                                        MAKE
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
