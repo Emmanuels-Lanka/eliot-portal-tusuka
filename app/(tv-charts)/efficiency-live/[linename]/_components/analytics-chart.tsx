@@ -185,19 +185,14 @@ const abbreviatePart = (part: string) => {
             operationsMap[data.obbOperationId].push(data);
         });
 
-        const customOrder = ['front', 'back', 'assembly', 'line-end'];
+        // Fixed sorting - only by sequence number
         const operations = Object.values(operationsMap).map(group => ({
             obbOperation: group[0].obbOperation,
             data: group,
             operator: group[0]
         })).sort((a, b) => {
-            const partA = a.obbOperation.part.toLowerCase();
-            const partB = b.obbOperation.part.toLowerCase();
-            const partComparison = customOrder.indexOf(partA) - customOrder.indexOf(partB);
-            if (partComparison === 0) {
-                return a.obbOperation.seqNo - b.obbOperation.seqNo;
-            }
-            return partComparison;
+            // Simply sort by sequence number only
+            return a.obbOperation.seqNo - b.obbOperation.seqNo;
         });
 
         // const categories = operations.map(op => `${op.obbOperation.operation.name}-${op.obbOperation.seqNo}`);
@@ -277,7 +272,7 @@ const abbreviatePart = (part: string) => {
               
                   // efficiency = timeDiffMinutes > 0 ? (liveEarnMins * 100) / timeDiffMinutes : 0;
               efficiency = timeDiffMinutes > 0 ? Math.min((liveEarnMins * 100) / timeDiffMinutes, 100) : 0;
-``
+
 
                 // const totalProduction = filteredData.reduce((sum, curr) => sum + curr.productionCount, 0);
                 // const earnmins = op.obbOperation.smv * totalProduction

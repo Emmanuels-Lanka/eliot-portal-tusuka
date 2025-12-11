@@ -514,6 +514,18 @@ model DeviceDefectLog {
   replacedPart            String?
   reportedTo              String?
   rootCause               String?
+  mediaUrls               String[]          @default([])
+  SD_F                    String?
+  SewingMachine           String?
+  T_P                     String?
+  deviceStatus            String?
+  lineNumber              String?
+  modelNumber             String?
+  operationName           String?
+  operatorId              String?
+  operatorSmv             String?
+  unitName                String?
+  versionNumber           String?
   attendedBy              User              @relation(fields: [attendedByUserId], references: [id])
   device                  EliotDevice       @relation("DeviceDefects", fields: [deviceId], references: [id])
   predefinedDefect        PredefinedDefect? @relation(fields: [predefinedDefectId], references: [id])

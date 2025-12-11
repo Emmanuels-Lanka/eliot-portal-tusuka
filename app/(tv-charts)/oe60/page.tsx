@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { db } from '@/lib/db';
 import SelectObbSheet from '../line-dashboard/_components/select-obb-sheet';
 
