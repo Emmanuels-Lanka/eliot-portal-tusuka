@@ -32,6 +32,8 @@ import {
   LucideUserCheck2,
   Server,
   Building2,
+  List,
+  ListCollapse,
 } from "lucide-react";
 
 export const ROAMING_QC_DEFECTS = [
@@ -461,7 +463,7 @@ export const SIDEBAR_ROUTES = [
       },
     ],
   },
-  {
+    {
     categoryName: "SMS & Email Alerts",
     icon: Send,
     routes: [
@@ -469,6 +471,17 @@ export const SIDEBAR_ROUTES = [
         label: "Alert logs",
         href: "/alert-logs",
         icon: Send,
+      },
+    ],
+  },
+  {
+    categoryName: "Offstand Management",
+    icon: ListCollapse,
+    routes: [
+      {
+        label: "Offstand Categories",
+        href: "/offstand-categories",
+        icon: List,
       },
     ],
   },
