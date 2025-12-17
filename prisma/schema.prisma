@@ -638,3 +638,11 @@ enum MachineDefectStatus {
   OUT_OF_SERVICE
   CANCELLED
 }
+
+model OffstandCategories {
+    id String @id @default(uuid())
+    optionName String @unique
+    optionValue String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
